@@ -34,6 +34,12 @@ external void _onWheel(JSNumber deltaY);
 @JS('setLightIntensity')
 external void _setLightIntensity(JSNumber ambient, JSNumber directional);
 
+@JS('highlightMesh')
+external JSString _highlightMesh(JSString meshName);
+
+@JS('clearMeshHighlight')
+external JSString _clearMeshHighlight();
+
 // Callback setter for VRM loaded event
 @JS('onVRMLoaded')
 external set _onVRMLoaded(JSFunction? callback);
@@ -85,6 +91,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   Map<String, dynamic>? _animationInfo;
   bool _isLoadingAnimation = false;
   String? _activeExpression;
+  String? _selectedMesh;
 
   @override
   void initState() {
@@ -113,6 +120,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
         _vrmInfo = result;
         _errorMessage = null;
         _activeExpression = null;
+        _selectedMesh = null;
       } else {
         _errorMessage = result['error'];
       }
@@ -550,26 +558,51 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
         final tris = m['triangles'] as int;
         final mats = m['materials'] as int;
         final isLast = index == meshDetails.length - 1;
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2),
-          child: Row(
-            children: [
-              Text(
-                isLast ? '└─ ' : '├─ ',
-                style: const TextStyle(color: Colors.grey),
-              ),
-              Expanded(
-                child: Text(
-                  name,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 13),
+        final isSelected = _selectedMesh == name;
+        return InkWell(
+          onTap: () {
+            if (isSelected) {
+              _clearMeshHighlight();
+              setState(() {
+                _selectedMesh = null;
+              });
+            } else {
+              _highlightMesh(name.toJS);
+              setState(() {
+                _selectedMesh = name;
+              });
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.5)
+                  : null,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Row(
+              children: [
+                Text(
+                  isLast ? '└─ ' : '├─ ',
+                  style: const TextStyle(color: Colors.grey),
                 ),
-              ),
-              Text(
-                '$tris tris, $mats mat${mats > 1 ? 's' : ''}',
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-            ],
+                Expanded(
+                  child: Text(
+                    name,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: isSelected ? FontWeight.bold : null,
+                    ),
+                  ),
+                ),
+                Text(
+                  '$tris tris, $mats mat${mats > 1 ? 's' : ''}',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
+            ),
           ),
         );
       }),

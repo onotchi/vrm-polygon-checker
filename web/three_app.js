@@ -482,4 +482,62 @@ window.getLightIntensity = function() {
   });
 };
 
+// Mesh highlight state
+let highlightedMesh = null;
+let originalMaterials = new Map();
+
+// Highlight a specific mesh by name
+window.highlightMesh = function(meshName) {
+  // Clear previous highlight
+  window.clearMeshHighlight();
+
+  if (!currentVRM) {
+    return JSON.stringify({ error: 'No VRM loaded.' });
+  }
+
+  // Find the mesh
+  currentVRM.scene.traverse((object) => {
+    if (object.isMesh && object.name === meshName) {
+      highlightedMesh = object;
+
+      // Store original materials and apply highlight
+      if (Array.isArray(object.material)) {
+        originalMaterials.set(object, object.material.map(m => m.clone()));
+        object.material.forEach(m => {
+          m.emissive = new THREE.Color(0x4488ff);
+          m.emissiveIntensity = 0.3;
+        });
+      } else {
+        originalMaterials.set(object, object.material.clone());
+        object.material.emissive = new THREE.Color(0x4488ff);
+        object.material.emissiveIntensity = 0.3;
+      }
+    }
+  });
+
+  if (highlightedMesh) {
+    return JSON.stringify({ success: true, mesh: meshName });
+  }
+  return JSON.stringify({ error: 'Mesh not found: ' + meshName });
+};
+
+// Clear mesh highlight
+window.clearMeshHighlight = function() {
+  if (highlightedMesh && originalMaterials.has(highlightedMesh)) {
+    const original = originalMaterials.get(highlightedMesh);
+    if (Array.isArray(highlightedMesh.material)) {
+      highlightedMesh.material.forEach((m, i) => {
+        m.emissive = original[i].emissive;
+        m.emissiveIntensity = original[i].emissiveIntensity;
+      });
+    } else {
+      highlightedMesh.material.emissive = original.emissive;
+      highlightedMesh.material.emissiveIntensity = original.emissiveIntensity;
+    }
+    originalMaterials.delete(highlightedMesh);
+    highlightedMesh = null;
+  }
+  return JSON.stringify({ success: true });
+};
+
 console.log('Three.js app initialized!');
