@@ -1,78 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart';
 import 'dart:js_interop';
 import 'dart:convert';
 import 'localization.dart';
-
-// JavaScript interop
-@JS('openFilePicker')
-external void _openFilePicker();
-
-@JS('openVRMAPicker')
-external void _openVRMAPicker();
-
-@JS('stopAnimation')
-external JSString _stopAnimation();
-
-@JS('setExpression')
-external JSString _setExpression(JSString expressionName, JSNumber value);
-
-@JS('resetExpressions')
-external JSString _resetExpressions();
-
-@JS('onPointerDown')
-external void _onPointerDown(JSNumber x, JSNumber y, JSNumber button);
-
-@JS('onPointerMove')
-external void _onPointerMove(JSNumber x, JSNumber y);
-
-@JS('onPointerUp')
-external void _onPointerUp();
-
-@JS('onWheel')
-external void _onWheel(JSNumber deltaY);
-
-@JS('setLightIntensity')
-external void _setLightIntensity(JSNumber ambient, JSNumber directional);
-
-@JS('highlightMesh')
-external JSString _highlightMesh(JSString meshName);
-
-@JS('clearMeshHighlight')
-external JSString _clearMeshHighlight();
-
-@JS('setMeshVisibility')
-external JSString _setMeshVisibility(JSString meshName, JSBoolean visible);
-
-@JS('setGridVisible')
-external JSString _setGridVisible(JSBoolean visible);
-
-@JS('setShadowVisible')
-external JSString _setShadowVisible(JSBoolean visible);
-
-@JS('setBackgroundColor')
-external JSString _setBackgroundColor(JSNumber r, JSNumber g, JSNumber b);
-
-@JS('focusMesh')
-external JSString _focusMesh(JSString meshName);
-
-@JS('showAllMeshes')
-external JSString _showAllMeshes();
-
-// Callback setter for VRM loaded event
-@JS('onVRMLoaded')
-external set _onVRMLoaded(JSFunction? callback);
-
-// Callback setter for VRMA loaded event
-@JS('onVRMALoaded')
-external set _onVRMALoaded(JSFunction? callback);
-
-// Callback setter for file picker cancelled events
-@JS('onVRMLoadCancelled')
-external set _onVRMLoadCancelled(JSFunction? callback);
-
-@JS('onVRMALoadCancelled')
-external set _onVRMALoadCancelled(JSFunction? callback);
+import 'js_interop.dart' as js;
+import 'widgets/settings_panel.dart';
+import 'widgets/info_panel.dart';
+import 'widgets/canvas_area.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -104,19 +37,28 @@ class VRMViewerPage extends StatefulWidget {
 }
 
 class _VRMViewerPageState extends State<VRMViewerPage> {
+  // VRM state
   Map<String, dynamic>? _vrmInfo;
   bool _isLoading = false;
   String? _errorMessage;
-  double _ambientIntensity = 2.0;
-  double _directionalIntensity = 1.0;
+
+  // Animation state
   Map<String, dynamic>? _animationInfo;
   bool _isLoadingAnimation = false;
+
+  // Expression state
   String? _activeExpression;
+
+  // Mesh state
   String? _selectedMesh;
   final Set<String> _hiddenMeshes = {};
-  String? _focusedMesh; // Mesh currently in focus mode (all others hidden)
-  String _meshSortKey = 'none'; // 'none', 'name', 'triangles'
+  String? _focusedMesh;
+  String _meshSortKey = 'none';
   bool _meshSortAscending = true;
+
+  // Settings state
+  double _ambientIntensity = 2.0;
+  double _directionalIntensity = 1.0;
   bool _gridVisible = true;
   bool _shadowVisible = true;
   Color _backgroundColor = const Color(0xFFFFFFFF);
@@ -124,19 +66,18 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   @override
   void initState() {
     super.initState();
-    // Set up callback for file picker and drag & drop
-    _onVRMLoaded = _handleVRMLoaded.toJS;
-    _onVRMALoaded = _handleVRMALoaded.toJS;
-    _onVRMLoadCancelled = _handleVRMLoadCancelled.toJS;
-    _onVRMALoadCancelled = _handleVRMALoadCancelled.toJS;
+    js.onVRMLoadedCallback = _handleVRMLoaded.toJS;
+    js.onVRMALoadedCallback = _handleVRMALoaded.toJS;
+    js.onVRMLoadCancelledCallback = _handleVRMLoadCancelled.toJS;
+    js.onVRMALoadCancelledCallback = _handleVRMALoadCancelled.toJS;
   }
 
   @override
   void dispose() {
-    _onVRMLoaded = null;
-    _onVRMALoaded = null;
-    _onVRMLoadCancelled = null;
-    _onVRMALoadCancelled = null;
+    js.onVRMLoadedCallback = null;
+    js.onVRMALoadedCallback = null;
+    js.onVRMLoadCancelledCallback = null;
+    js.onVRMALoadCancelledCallback = null;
     super.dispose();
   }
 
@@ -186,7 +127,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
       _isLoading = true;
       _errorMessage = null;
     });
-    _openFilePicker();
+    js.openFilePicker();
   }
 
   void _openAnimation() {
@@ -200,465 +141,14 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
       _isLoadingAnimation = true;
       _errorMessage = null;
     });
-    _openVRMAPicker();
+    js.openVRMAPicker();
   }
 
-  void _stopCurrentAnimation() {
-    _stopAnimation();
+  void _stopAnimation() {
+    js.stopAnimation();
     setState(() {
       _animationInfo = null;
     });
-  }
-
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Row(
-        children: [
-          // Left: Settings panel
-          Container(
-            width: 200,
-            color: Theme.of(context).colorScheme.surface,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  color: Theme.of(context).colorScheme.inversePrimary,
-                  child: Text(
-                    Localization.get('settings'),
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                ),
-                // Lighting controls
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        Localization.get('lighting'),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(Localization.get('ambient'), style: const TextStyle(fontSize: 12)),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Slider(
-                              value: _ambientIntensity,
-                              min: 0,
-                              max: 2,
-                              onChanged: (value) {
-                                setState(() {
-                                  _ambientIntensity = value;
-                                });
-                                _setLightIntensity(
-                                  _ambientIntensity.toJS,
-                                  _directionalIntensity.toJS,
-                                );
-                              },
-                            ),
-                          ),
-                          SizedBox(
-                            width: 32,
-                            child: Text(
-                              _ambientIntensity.toStringAsFixed(1),
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Text(Localization.get('direct'), style: const TextStyle(fontSize: 12)),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Slider(
-                              value: _directionalIntensity,
-                              min: 0,
-                              max: 3,
-                              onChanged: (value) {
-                                setState(() {
-                                  _directionalIntensity = value;
-                                });
-                                _setLightIntensity(
-                                  _ambientIntensity.toJS,
-                                  _directionalIntensity.toJS,
-                                );
-                              },
-                            ),
-                          ),
-                          SizedBox(
-                            width: 32,
-                            child: Text(
-                              _directionalIntensity.toStringAsFixed(1),
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        Localization.get('display'),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(Localization.get('grid'), style: const TextStyle(fontSize: 12)),
-                          Switch(
-                            value: _gridVisible,
-                            onChanged: (value) {
-                              setState(() {
-                                _gridVisible = value;
-                              });
-                              _setGridVisible(value.toJS);
-                            },
-                          ),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(Localization.get('shadow'), style: const TextStyle(fontSize: 12)),
-                          Switch(
-                            value: _shadowVisible,
-                            onChanged: (value) {
-                              setState(() {
-                                _shadowVisible = value;
-                              });
-                              _setShadowVisible(value.toJS);
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(Localization.get('background'), style: const TextStyle(fontSize: 12)),
-                      const SizedBox(height: 4),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: [
-                          _buildColorButton(const Color(0xFFFFFFFF)), // White (default)
-                          _buildColorButton(const Color(0xFF000000)), // Black
-                          _buildColorButton(const Color(0xFF87CEEB)), // Sky blue
-                          _buildColorButton(const Color(0xFF90EE90)), // Light green
-                          _buildColorButton(const Color(0xFFFFF9C4)), // Pastel yellow
-                          _buildColorButton(const Color(0xFFFFCDD2)), // Pastel red
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        Localization.get('language'),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          _buildLanguageButton('JA', AppLanguage.ja),
-                          const SizedBox(width: 8),
-                          _buildLanguageButton('EN', AppLanguage.en),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Center: Three.js canvas area with pointer event forwarding
-          Expanded(
-            child: Listener(
-              onPointerDown: (event) {
-                _onPointerDown(
-                  event.position.dx.toJS,
-                  event.position.dy.toJS,
-                  event.buttons.toJS,
-                );
-              },
-              onPointerMove: (event) {
-                _onPointerMove(
-                  event.position.dx.toJS,
-                  event.position.dy.toJS,
-                );
-              },
-              onPointerUp: (event) {
-                _onPointerUp();
-              },
-              onPointerSignal: (event) {
-                if (event is PointerScrollEvent) {
-                  _onWheel(event.scrollDelta.dy.toJS);
-                }
-              },
-              child: Container(color: Colors.transparent),
-            ),
-          ),
-          // Right: VRM Info panel
-          Container(
-            width: 320,
-            color: Theme.of(context).colorScheme.surface,
-            child: Column(
-              children: [
-                // Header
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  color: Theme.of(context).colorScheme.inversePrimary,
-                  child: const Text(
-                    'VRM Polygon Checker',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                ),
-                // Content
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: _isLoading ? null : _openFile,
-                            icon: const Icon(Icons.folder_open),
-                            label: Text(Localization.get('openVrmFile')),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: _isLoadingAnimation ? null : _openAnimation,
-                            icon: const Icon(Icons.animation),
-                            label: Text(Localization.get('loadAnimation')),
-                          ),
-                        ),
-                        if (_animationInfo != null) ...[
-                          const SizedBox(height: 8),
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.play_circle, color: Colors.green),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      _animationInfo!['fileName'] ?? 'Animation',
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
-                                  ),
-                                  IconButton(
-                                    onPressed: _stopCurrentAnimation,
-                                    icon: const Icon(Icons.stop),
-                                    tooltip: Localization.get('stopAnimation'),
-                                    iconSize: 20,
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 24),
-                        Text(
-                          Localization.get('vrmInfo'),
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        if (_isLoading)
-                          const Center(child: CircularProgressIndicator())
-                        else if (_errorMessage != null)
-                          Text(
-                            _errorMessage!,
-                            style: const TextStyle(color: Colors.red),
-                          )
-                        else if (_vrmInfo != null)
-                          _buildInfoTable()
-                        else
-                          Text(Localization.get('noVrmLoaded')),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoTable() {
-    final fileName = _vrmInfo!['fileName'] as String?;
-    final meshDetails = _vrmInfo!['meshDetails'] as List<dynamic>?;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (fileName != null) ...[
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  fileName,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  'VRM ${_vrmInfo!['vrmVersion'] ?? '?'}',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-        ],
-        _infoRow(Localization.get('name'), _vrmInfo!['name']),
-        _infoRow(Localization.get('author'), _vrmInfo!['author']),
-        const Divider(),
-        _infoRow(Localization.get('vertices'), '${_vrmInfo!['vertexCount']}'),
-        _infoRow(Localization.get('triangles'), '${_vrmInfo!['triangleCount']}'),
-        _infoRow(Localization.get('meshes'), '${_vrmInfo!['meshCount']}'),
-        const Divider(),
-        _infoRow(Localization.get('bones'), '${_vrmInfo!['boneCount']}'),
-        _infoRow(Localization.get('materials'), '${_vrmInfo!['materialCount']}'),
-        _infoRow(Localization.get('textures'), '${_vrmInfo!['textureCount']}'),
-        if (meshDetails != null && meshDetails.isNotEmpty) ...[
-          const Divider(),
-          _buildMeshDetails(meshDetails),
-        ],
-        const Divider(),
-        _buildExpressionButtons(),
-      ],
-    );
-  }
-
-  Widget _buildExpressionButtons() {
-    final clips = _vrmInfo!['blendShapeClips'] as List<dynamic>?;
-    if (clips == null || clips.isEmpty) {
-      return Text(
-        Localization.get('noExpressions'),
-        style: const TextStyle(color: Colors.grey, fontSize: 12),
-      );
-    }
-
-    return ExpansionTile(
-      title: Text('${Localization.get('expressions')} (${clips.length})'),
-      tilePadding: EdgeInsets.zero,
-      shape: const Border(),
-      collapsedShape: const Border(),
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              // Reset button
-              OutlinedButton(
-                onPressed: () {
-                  _resetExpressions();
-                  setState(() {
-                    _activeExpression = null;
-                  });
-                },
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  minimumSize: Size.zero,
-                ),
-                child: Text(Localization.get('reset'), style: const TextStyle(fontSize: 11)),
-              ),
-              // Expression buttons
-              ...clips.map((clip) {
-                final name = clip as String;
-                final isActive = _activeExpression == name;
-                return ElevatedButton(
-                  onPressed: () {
-                    if (isActive) {
-                      // Turn off
-                      _setExpression(name.toJS, (0.0).toJS);
-                      setState(() {
-                        _activeExpression = null;
-                      });
-                    } else {
-                      // Reset previous and set new
-                      if (_activeExpression != null) {
-                        _setExpression(_activeExpression!.toJS, (0.0).toJS);
-                      }
-                      _setExpression(name.toJS, (1.0).toJS);
-                      setState(() {
-                        _activeExpression = name;
-                      });
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    minimumSize: Size.zero,
-                    backgroundColor: isActive
-                        ? Theme.of(context).colorScheme.primary
-                        : null,
-                    foregroundColor: isActive
-                        ? Theme.of(context).colorScheme.onPrimary
-                        : null,
-                  ),
-                  child: Text(name, style: const TextStyle(fontSize: 11)),
-                );
-              }),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  List<Map<String, dynamic>> _getSortedMeshDetails(List<dynamic> meshDetails) {
-    final list = meshDetails.cast<Map<String, dynamic>>().toList();
-    if (_meshSortKey == 'none') return list;
-
-    list.sort((a, b) {
-      int result;
-      if (_meshSortKey == 'name') {
-        result = (a['name'] as String).compareTo(b['name'] as String);
-      } else {
-        result = (a['triangles'] as int).compareTo(b['triangles'] as int);
-      }
-      return _meshSortAscending ? result : -result;
-    });
-    return list;
   }
 
   void _toggleMeshSort(String key) {
@@ -677,240 +167,83 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
     });
   }
 
-  Widget _buildSortButton(String label, String key) {
-    final isActive = _meshSortKey == key;
-    return GestureDetector(
-      onTap: () => _toggleMeshSort(key),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        decoration: BoxDecoration(
-          color: isActive
-              ? Theme.of(context).colorScheme.primaryContainer
-              : Colors.grey.shade200,
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
-            if (isActive)
-              Icon(
-                _meshSortAscending ? Icons.arrow_upward : Icons.arrow_downward,
-                size: 12,
-              ),
-          ],
-        ),
-      ),
-    );
+  void _handleMeshVisibilityChanged(String name) {
+    final isHidden = _hiddenMeshes.contains(name);
+    final newVisible = isHidden;
+    js.setMeshVisibility(name.toJS, newVisible.toJS);
+    setState(() {
+      if (newVisible) {
+        _hiddenMeshes.remove(name);
+      } else {
+        _hiddenMeshes.add(name);
+      }
+    });
   }
 
-  Widget _buildMeshDetails(List<dynamic> meshDetails) {
-    final sortedDetails = _getSortedMeshDetails(meshDetails);
-    return ExpansionTile(
-      title: Row(
-        children: [
-          Text('${Localization.get('meshDetails')} (${meshDetails.length})'),
-          const Spacer(),
-          _buildSortButton('A', 'name'),
-          const SizedBox(width: 4),
-          _buildSortButton('#', 'triangles'),
-        ],
-      ),
-      tilePadding: EdgeInsets.zero,
-      childrenPadding: const EdgeInsets.only(left: 8),
-      shape: const Border(),
-      collapsedShape: const Border(),
-      children: List.generate(sortedDetails.length, (index) {
-        final m = sortedDetails[index];
-        final name = m['name'] as String;
-        final tris = m['triangles'] as int;
-        final mats = m['materials'] as int;
-        final isLast = index == sortedDetails.length - 1;
-        final isSelected = _selectedMesh == name;
-        final isHidden = _hiddenMeshes.contains(name);
-        return InkWell(
-          onTap: () {
-            if (isSelected) {
-              _clearMeshHighlight();
-              setState(() {
-                _selectedMesh = null;
-              });
-            } else {
-              _highlightMesh(name.toJS);
-              setState(() {
-                _selectedMesh = name;
-              });
+  void _handleMeshFocusChanged(String name) {
+    setState(() {
+      if (_focusedMesh == name) {
+        js.showAllMeshes();
+        _focusedMesh = null;
+        _hiddenMeshes.clear();
+      } else {
+        js.focusMesh(name.toJS);
+        _focusedMesh = name;
+        _hiddenMeshes.clear();
+        final meshes = _vrmInfo?['meshDetails'] as List?;
+        if (meshes != null) {
+          for (final m in meshes) {
+            final meshName = m['name'] as String;
+            if (meshName != name) {
+              _hiddenMeshes.add(meshName);
             }
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5)
-                  : null,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Row(
-              children: [
-                // Visibility toggle (eye icon)
-                GestureDetector(
-                  onTap: () {
-                    final newVisible = isHidden;
-                    _setMeshVisibility(name.toJS, newVisible.toJS);
-                    setState(() {
-                      if (newVisible) {
-                        _hiddenMeshes.remove(name);
-                      } else {
-                        _hiddenMeshes.add(name);
-                      }
-                    });
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 2),
-                    child: Icon(
-                      isHidden ? Icons.visibility_off : Icons.visibility,
-                      size: 16,
-                      color: isHidden ? Colors.grey : Colors.grey.shade600,
-                    ),
-                  ),
-                ),
-                // Focus toggle (magnifying glass icon)
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      if (_focusedMesh == name) {
-                        // Unfocus: show all meshes
-                        _showAllMeshes();
-                        _focusedMesh = null;
-                        _hiddenMeshes.clear();
-                      } else {
-                        // Focus: hide all except this mesh
-                        _focusMesh(name.toJS);
-                        _focusedMesh = name;
-                        // Update hidden meshes set to reflect focus state
-                        _hiddenMeshes.clear();
-                        final meshes = _vrmInfo?['meshDetails'] as List?;
-                        if (meshes != null) {
-                          for (final m in meshes) {
-                            final meshName = m['name'] as String;
-                            if (meshName != name) {
-                              _hiddenMeshes.add(meshName);
-                            }
-                          }
-                        }
-                      }
-                    });
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 4),
-                    child: Icon(
-                      Icons.center_focus_strong,
-                      size: 16,
-                      color: _focusedMesh == name
-                          ? Theme.of(context).colorScheme.primary
-                          : Colors.grey.shade600,
-                    ),
-                  ),
-                ),
-                Text(
-                  isLast ? '└─ ' : '├─ ',
-                  style: const TextStyle(color: Colors.grey),
-                ),
-                Expanded(
-                  child: Text(
-                    name,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: isSelected ? FontWeight.bold : null,
-                      color: isHidden ? Colors.grey : null,
-                    ),
-                  ),
-                ),
-                Text(
-                  '$tris tris, $mats mat${mats > 1 ? 's' : ''}',
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ],
-            ),
-          ),
-        );
-      }),
-    );
+          }
+        }
+      }
+    });
   }
 
-  Widget _buildLanguageButton(String label, AppLanguage language) {
-    final isSelected = Localization.currentLanguage == language;
-    return GestureDetector(
-      onTap: () async {
-        await Localization.load(language);
-        setState(() {});
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? Theme.of(context).colorScheme.primary
-              : Colors.grey.shade200,
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            color: isSelected ? Colors.white : Colors.black87,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildColorButton(Color color) {
-    final isSelected = _backgroundColor == color;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _backgroundColor = color;
-        });
-        _setBackgroundColor(
-          ((color.r * 255).round()).toJS,
-          ((color.g * 255).round()).toJS,
-          ((color.b * 255).round()).toJS,
-        );
-      },
-      child: Container(
-        width: 24,
-        height: 24,
-        decoration: BoxDecoration(
-          color: color,
-          border: Border.all(
-            color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey,
-            width: isSelected ? 2 : 1,
-          ),
-          borderRadius: BorderRadius.circular(4),
-        ),
-      ),
-    );
-  }
-
-  Widget _infoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Row(
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontWeight: FontWeight.w500),
+          SettingsPanel(
+            ambientIntensity: _ambientIntensity,
+            directionalIntensity: _directionalIntensity,
+            gridVisible: _gridVisible,
+            shadowVisible: _shadowVisible,
+            backgroundColor: _backgroundColor,
+            onAmbientChanged: (value) => setState(() => _ambientIntensity = value),
+            onDirectionalChanged: (value) => setState(() => _directionalIntensity = value),
+            onGridVisibleChanged: (value) => setState(() => _gridVisible = value),
+            onShadowVisibleChanged: (value) => setState(() => _shadowVisible = value),
+            onBackgroundColorChanged: (value) => setState(() => _backgroundColor = value),
+            onLanguageChanged: () => setState(() {}),
           ),
-          Text(value),
+          const CanvasArea(),
+          InfoPanel(
+            vrmInfo: _vrmInfo,
+            animationInfo: _animationInfo,
+            isLoading: _isLoading,
+            isLoadingAnimation: _isLoadingAnimation,
+            errorMessage: _errorMessage,
+            activeExpression: _activeExpression,
+            selectedMesh: _selectedMesh,
+            focusedMesh: _focusedMesh,
+            hiddenMeshes: _hiddenMeshes,
+            meshSortKey: _meshSortKey,
+            meshSortAscending: _meshSortAscending,
+            onOpenFile: _openFile,
+            onOpenAnimation: _openAnimation,
+            onStopAnimation: _stopAnimation,
+            onExpressionChanged: (value) => setState(() => _activeExpression = value),
+            onMeshSelected: (value) => setState(() => _selectedMesh = value),
+            onMeshVisibilityChanged: _handleMeshVisibilityChanged,
+            onMeshFocusChanged: _handleMeshFocusChanged,
+            onSortChanged: _toggleMeshSort,
+          ),
         ],
       ),
     );
