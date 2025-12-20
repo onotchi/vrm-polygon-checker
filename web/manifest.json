@@ -1,11 +1,11 @@
 {
-    "name": "vrm_viewer",
-    "short_name": "vrm_viewer",
+    "name": "VRM Polygon Checker",
+    "short_name": "VRM Poly Check",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "VRM Polygon Checker - Check mesh polygons for your VRM models",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

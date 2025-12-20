@@ -77,7 +77,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'VRM Viewer',
+      title: 'VRM Polygon Checker',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
@@ -392,7 +392,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                   padding: const EdgeInsets.all(16),
                   color: Theme.of(context).colorScheme.inversePrimary,
                   child: const Text(
-                    'VRM Viewer',
+                    'VRM Polygon Checker',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ),
