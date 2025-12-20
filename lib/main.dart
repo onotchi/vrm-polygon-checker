@@ -2,45 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'dart:js_interop';
 import 'dart:convert';
-
-// Localization
-enum AppLanguage { ja, en }
-
-class L {
-  static AppLanguage current = AppLanguage.ja;
-
-  static final Map<String, Map<AppLanguage, String>> _strings = {
-    'settings': {AppLanguage.ja: '設定', AppLanguage.en: 'Settings'},
-    'lighting': {AppLanguage.ja: 'ライティング', AppLanguage.en: 'Lighting'},
-    'ambient': {AppLanguage.ja: '環境光', AppLanguage.en: 'Ambient'},
-    'direct': {AppLanguage.ja: '直接光', AppLanguage.en: 'Direct'},
-    'display': {AppLanguage.ja: '表示', AppLanguage.en: 'Display'},
-    'grid': {AppLanguage.ja: 'グリッド', AppLanguage.en: 'Grid'},
-    'shadow': {AppLanguage.ja: '影', AppLanguage.en: 'Shadow'},
-    'background': {AppLanguage.ja: '背景色', AppLanguage.en: 'Background'},
-    'language': {AppLanguage.ja: '言語', AppLanguage.en: 'Language'},
-    'openVrmFile': {AppLanguage.ja: 'VRMファイルを開く', AppLanguage.en: 'Open VRM File'},
-    'loadAnimation': {AppLanguage.ja: 'アニメーション読込 (.vrma)', AppLanguage.en: 'Load Animation (.vrma)'},
-    'stopAnimation': {AppLanguage.ja: 'アニメーション停止', AppLanguage.en: 'Stop Animation'},
-    'vrmInfo': {AppLanguage.ja: 'VRM情報', AppLanguage.en: 'VRM Info'},
-    'noVrmLoaded': {AppLanguage.ja: 'VRMが読み込まれていません。\nファイルをドラッグ＆ドロップしてください。', AppLanguage.en: 'No VRM loaded.\nDrag & drop a file.'},
-    'pleaseLoadVrmFirst': {AppLanguage.ja: '先にVRMを読み込んでください。', AppLanguage.en: 'Please load a VRM first.'},
-    'name': {AppLanguage.ja: '名前', AppLanguage.en: 'Name'},
-    'author': {AppLanguage.ja: '作者', AppLanguage.en: 'Author'},
-    'vertices': {AppLanguage.ja: '頂点数', AppLanguage.en: 'Vertices'},
-    'triangles': {AppLanguage.ja: 'ポリゴン数', AppLanguage.en: 'Triangles'},
-    'meshes': {AppLanguage.ja: 'メッシュ数', AppLanguage.en: 'Meshes'},
-    'bones': {AppLanguage.ja: 'ボーン数', AppLanguage.en: 'Bones'},
-    'materials': {AppLanguage.ja: 'マテリアル数', AppLanguage.en: 'Materials'},
-    'textures': {AppLanguage.ja: 'テクスチャ数', AppLanguage.en: 'Textures'},
-    'meshDetails': {AppLanguage.ja: 'メッシュ詳細', AppLanguage.en: 'Mesh Details'},
-    'expressions': {AppLanguage.ja: '表情', AppLanguage.en: 'Expressions'},
-    'noExpressions': {AppLanguage.ja: '表情がありません', AppLanguage.en: 'No expressions available'},
-    'reset': {AppLanguage.ja: 'リセット', AppLanguage.en: 'Reset'},
-  };
-
-  static String get(String key) => _strings[key]?[current] ?? key;
-}
+import 'localization.dart';
 
 // JavaScript interop
 @JS('openFilePicker')
@@ -106,7 +68,9 @@ external set _onVRMLoadCancelled(JSFunction? callback);
 @JS('onVRMALoadCancelled')
 external set _onVRMALoadCancelled(JSFunction? callback);
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Localization.load(AppLanguage.ja);
   runApp(const MyApp());
 }
 
@@ -220,7 +184,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   void _openAnimation() {
     if (_vrmInfo == null) {
       setState(() {
-        _errorMessage = L.get('pleaseLoadVrmFirst');
+        _errorMessage = Localization.get('pleaseLoadVrmFirst');
       });
       return;
     }
@@ -258,7 +222,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                   padding: const EdgeInsets.all(16),
                   color: Theme.of(context).colorScheme.inversePrimary,
                   child: Text(
-                    L.get('settings'),
+                    Localization.get('settings'),
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -269,14 +233,14 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        L.get('lighting'),
+                        Localization.get('lighting'),
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(L.get('ambient'), style: const TextStyle(fontSize: 12)),
+                      Text(Localization.get('ambient'), style: const TextStyle(fontSize: 12)),
                       Row(
                         children: [
                           Expanded(
@@ -304,7 +268,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                           ),
                         ],
                       ),
-                      Text(L.get('direct'), style: const TextStyle(fontSize: 12)),
+                      Text(Localization.get('direct'), style: const TextStyle(fontSize: 12)),
                       Row(
                         children: [
                           Expanded(
@@ -334,7 +298,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        L.get('display'),
+                        Localization.get('display'),
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -344,7 +308,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(L.get('grid'), style: const TextStyle(fontSize: 12)),
+                          Text(Localization.get('grid'), style: const TextStyle(fontSize: 12)),
                           Switch(
                             value: _gridVisible,
                             onChanged: (value) {
@@ -359,7 +323,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(L.get('shadow'), style: const TextStyle(fontSize: 12)),
+                          Text(Localization.get('shadow'), style: const TextStyle(fontSize: 12)),
                           Switch(
                             value: _shadowVisible,
                             onChanged: (value) {
@@ -372,7 +336,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      Text(L.get('background'), style: const TextStyle(fontSize: 12)),
+                      Text(Localization.get('background'), style: const TextStyle(fontSize: 12)),
                       const SizedBox(height: 4),
                       Wrap(
                         spacing: 6,
@@ -388,7 +352,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        L.get('language'),
+                        Localization.get('language'),
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -463,7 +427,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                           child: ElevatedButton.icon(
                             onPressed: _isLoading ? null : _openFile,
                             icon: const Icon(Icons.folder_open),
-                            label: Text(L.get('openVrmFile')),
+                            label: Text(Localization.get('openVrmFile')),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -472,7 +436,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                           child: ElevatedButton.icon(
                             onPressed: _isLoadingAnimation ? null : _openAnimation,
                             icon: const Icon(Icons.animation),
-                            label: Text(L.get('loadAnimation')),
+                            label: Text(Localization.get('loadAnimation')),
                           ),
                         ),
                         if (_animationInfo != null) ...[
@@ -494,7 +458,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                                   IconButton(
                                     onPressed: _stopCurrentAnimation,
                                     icon: const Icon(Icons.stop),
-                                    tooltip: L.get('stopAnimation'),
+                                    tooltip: Localization.get('stopAnimation'),
                                     iconSize: 20,
                                     padding: EdgeInsets.zero,
                                     constraints: const BoxConstraints(),
@@ -506,7 +470,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                         ],
                         const SizedBox(height: 24),
                         Text(
-                          L.get('vrmInfo'),
+                          Localization.get('vrmInfo'),
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -523,7 +487,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                         else if (_vrmInfo != null)
                           _buildInfoTable()
                         else
-                          Text(L.get('noVrmLoaded')),
+                          Text(Localization.get('noVrmLoaded')),
                       ],
                     ),
                   ),
@@ -575,16 +539,16 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
           ),
           const SizedBox(height: 8),
         ],
-        _infoRow(L.get('name'), _vrmInfo!['name']),
-        _infoRow(L.get('author'), _vrmInfo!['author']),
+        _infoRow(Localization.get('name'), _vrmInfo!['name']),
+        _infoRow(Localization.get('author'), _vrmInfo!['author']),
         const Divider(),
-        _infoRow(L.get('vertices'), '${_vrmInfo!['vertexCount']}'),
-        _infoRow(L.get('triangles'), '${_vrmInfo!['triangleCount']}'),
-        _infoRow(L.get('meshes'), '${_vrmInfo!['meshCount']}'),
+        _infoRow(Localization.get('vertices'), '${_vrmInfo!['vertexCount']}'),
+        _infoRow(Localization.get('triangles'), '${_vrmInfo!['triangleCount']}'),
+        _infoRow(Localization.get('meshes'), '${_vrmInfo!['meshCount']}'),
         const Divider(),
-        _infoRow(L.get('bones'), '${_vrmInfo!['boneCount']}'),
-        _infoRow(L.get('materials'), '${_vrmInfo!['materialCount']}'),
-        _infoRow(L.get('textures'), '${_vrmInfo!['textureCount']}'),
+        _infoRow(Localization.get('bones'), '${_vrmInfo!['boneCount']}'),
+        _infoRow(Localization.get('materials'), '${_vrmInfo!['materialCount']}'),
+        _infoRow(Localization.get('textures'), '${_vrmInfo!['textureCount']}'),
         if (meshDetails != null && meshDetails.isNotEmpty) ...[
           const Divider(),
           _buildMeshDetails(meshDetails),
@@ -599,13 +563,13 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
     final clips = _vrmInfo!['blendShapeClips'] as List<dynamic>?;
     if (clips == null || clips.isEmpty) {
       return Text(
-        L.get('noExpressions'),
+        Localization.get('noExpressions'),
         style: const TextStyle(color: Colors.grey, fontSize: 12),
       );
     }
 
     return ExpansionTile(
-      title: Text('${L.get('expressions')} (${clips.length})'),
+      title: Text('${Localization.get('expressions')} (${clips.length})'),
       tilePadding: EdgeInsets.zero,
       shape: const Border(),
       collapsedShape: const Border(),
@@ -628,7 +592,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   minimumSize: Size.zero,
                 ),
-                child: Text(L.get('reset'), style: const TextStyle(fontSize: 11)),
+                child: Text(Localization.get('reset'), style: const TextStyle(fontSize: 11)),
               ),
               // Expression buttons
               ...clips.map((clip) {
@@ -743,7 +707,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
     return ExpansionTile(
       title: Row(
         children: [
-          Text('${L.get('meshDetails')} (${meshDetails.length})'),
+          Text('${Localization.get('meshDetails')} (${meshDetails.length})'),
           const Spacer(),
           _buildSortButton('A', 'name'),
           const SizedBox(width: 4),
@@ -835,12 +799,11 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   }
 
   Widget _buildLanguageButton(String label, AppLanguage language) {
-    final isSelected = L.current == language;
+    final isSelected = Localization.currentLanguage == language;
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          L.current = language;
-        });
+      onTap: () async {
+        await Localization.load(language);
+        setState(() {});
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
