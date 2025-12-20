@@ -489,69 +489,77 @@ class InfoPanel extends StatelessWidget {
           final mats = m['materials'] as int;
           final isLast = index == sortedDetails.length - 1;
           final isHidden = hiddenMeshes.contains(name);
-          return Container(
-            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-            child: Row(
-              children: [
-                // Visibility toggle
-                GestureDetector(
-                  onTap: () => onMeshVisibilityChanged(name),
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 2),
-                    child: Icon(
-                      isHidden ? Icons.visibility_off : Icons.visibility,
-                      size: 16,
-                      color: isHidden ? Colors.grey : Colors.grey.shade600,
+          return Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {},
+              hoverColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(4),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                child: Row(
+                  children: [
+                    // Visibility toggle
+                    GestureDetector(
+                      onTap: () => onMeshVisibilityChanged(name),
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 2),
+                        child: Icon(
+                          isHidden ? Icons.visibility_off : Icons.visibility,
+                          size: 16,
+                          color: isHidden ? Colors.grey : Colors.grey.shade600,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                // Focus toggle
-                GestureDetector(
-                  onTap: () => onMeshFocusChanged(name),
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 2),
-                    child: Icon(
-                      Icons.search,
-                      size: 16,
-                      color: focusedMesh == name
-                          ? Theme.of(context).colorScheme.primary
-                          : Colors.grey.shade600,
+                    // Focus toggle
+                    GestureDetector(
+                      onTap: () => onMeshFocusChanged(name),
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 2),
+                        child: Icon(
+                          Icons.search,
+                          size: 16,
+                          color: focusedMesh == name
+                              ? Theme.of(context).colorScheme.primary
+                              : Colors.grey.shade600,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                // Wireframe toggle
-                GestureDetector(
-                  onTap: () => onMeshWireframeChanged(name),
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 4),
-                    child: Icon(
-                      Icons.grid_on,
-                      size: 16,
-                      color: wireframeMeshes.contains(name)
-                          ? Colors.green
-                          : Colors.grey.shade600,
+                    // Wireframe toggle
+                    GestureDetector(
+                      onTap: () => onMeshWireframeChanged(name),
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: Icon(
+                          Icons.grid_on,
+                          size: 16,
+                          color: wireframeMeshes.contains(name)
+                              ? Colors.green
+                              : Colors.grey.shade600,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                Text(
-                  isLast ? '└─ ' : '├─ ',
-                  style: const TextStyle(color: Colors.grey),
-                ),
-                Expanded(
-                  child: Text(
-                    name,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: isHidden ? Colors.grey : null,
+                    Text(
+                      isLast ? '└─ ' : '├─ ',
+                      style: const TextStyle(color: Colors.grey),
                     ),
-                  ),
+                    Expanded(
+                      child: Text(
+                        name,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isHidden ? Colors.grey : null,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '$tris tris, $mats mat${mats > 1 ? 's' : ''}',
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ],
                 ),
-                Text(
-                  '$tris tris, $mats mat${mats > 1 ? 's' : ''}',
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ],
+              ),
             ),
           );
         }),
