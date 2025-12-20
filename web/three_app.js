@@ -171,14 +171,21 @@ function getVRMInfo(vrm, gltf, fileName = null) {
 
   const meta = vrm.meta;
 
+  // Debug: Log meta structure
+  console.log('VRM Meta:', meta);
+
+  // VRM 0.x uses 'title' and 'author', VRM 1.0 uses 'name' and 'authors'
+  const name = meta?.name || meta?.title || 'Unknown';
+  const author = meta?.authors?.[0] || meta?.author || 'Unknown';
+
   return {
     // File info
     fileName: fileName || null,
 
     // VRM Meta info
-    name: meta?.name || 'Unknown',
-    author: meta?.authors?.[0] || 'Unknown',
-    version: meta?.metaVersion || 'Unknown',
+    name: name,
+    author: author,
+    version: meta?.metaVersion || meta?.version || 'Unknown',
 
     // Mesh info
     meshCount: meshDetails.length,
