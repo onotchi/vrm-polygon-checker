@@ -230,6 +230,8 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
 
   Widget _buildInfoTable() {
     final fileName = _vrmInfo!['fileName'] as String?;
+    final meshDetails = _vrmInfo!['meshDetails'] as List<dynamic>?;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -253,7 +255,48 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
         _infoRow('Bones', '${_vrmInfo!['boneCount']}'),
         _infoRow('Materials', '${_vrmInfo!['materialCount']}'),
         _infoRow('Textures', '${_vrmInfo!['textureCount']}'),
+        if (meshDetails != null && meshDetails.isNotEmpty) ...[
+          const Divider(),
+          _buildMeshDetails(meshDetails),
+        ],
       ],
+    );
+  }
+
+  Widget _buildMeshDetails(List<dynamic> meshDetails) {
+    return ExpansionTile(
+      title: Text('Mesh Details (${meshDetails.length})'),
+      tilePadding: EdgeInsets.zero,
+      childrenPadding: const EdgeInsets.only(left: 8),
+      children: List.generate(meshDetails.length, (index) {
+        final m = meshDetails[index] as Map<String, dynamic>;
+        final name = m['name'] as String;
+        final tris = m['triangles'] as int;
+        final mats = m['materials'] as int;
+        final isLast = index == meshDetails.length - 1;
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: Row(
+            children: [
+              Text(
+                isLast ? '└─ ' : '├─ ',
+                style: const TextStyle(color: Colors.grey),
+              ),
+              Expanded(
+                child: Text(
+                  name,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 13),
+                ),
+              ),
+              Text(
+                '$tris tris, $mats mat${mats > 1 ? 's' : ''}',
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ],
+          ),
+        );
+      }),
     );
   }
 

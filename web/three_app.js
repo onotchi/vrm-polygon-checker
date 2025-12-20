@@ -123,18 +123,29 @@ window.openFilePicker = function() {
 function getVRMInfo(vrm, gltf, fileName = null) {
   let totalVertices = 0;
   let totalTriangles = 0;
-  let meshCount = 0;
+  const meshDetails = [];
 
   gltf.scene.traverse((object) => {
     if (object.isMesh) {
-      meshCount++;
       const geometry = object.geometry;
-      if (geometry.attributes.position) {
-        totalVertices += geometry.attributes.position.count;
+      const vertices = geometry.attributes.position?.count || 0;
+      const triangles = geometry.index ? Math.floor(geometry.index.count / 3) : 0;
+
+      // Count materials for this mesh
+      let materialCount = 1;
+      if (Array.isArray(object.material)) {
+        materialCount = object.material.length;
       }
-      if (geometry.index) {
-        totalTriangles += geometry.index.count / 3;
-      }
+
+      meshDetails.push({
+        name: object.name || `Mesh ${meshDetails.length + 1}`,
+        vertices: vertices,
+        triangles: triangles,
+        materials: materialCount,
+      });
+
+      totalVertices += vertices;
+      totalTriangles += triangles;
     }
   });
 
@@ -150,9 +161,10 @@ function getVRMInfo(vrm, gltf, fileName = null) {
     version: meta?.metaVersion || 'Unknown',
 
     // Mesh info
-    meshCount: meshCount,
+    meshCount: meshDetails.length,
     vertexCount: totalVertices,
     triangleCount: Math.floor(totalTriangles),
+    meshDetails: meshDetails,
 
     // Bone info
     boneCount: vrm.humanoid?.humanBones ? Object.keys(vrm.humanoid.humanBones).length : 0,
