@@ -408,12 +408,34 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (fileName != null) ...[
-          Text(
-            fileName,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Colors.grey,
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  fileName,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  'VRM ${_vrmInfo!['vrmVersion'] ?? '?'}',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
         ],

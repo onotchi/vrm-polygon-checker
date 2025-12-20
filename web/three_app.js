@@ -182,14 +182,23 @@ function getVRMInfo(vrm, gltf, fileName = null) {
   const name = meta?.name || meta?.title || 'Unknown';
   const author = meta?.authors?.[0] || meta?.author || 'Unknown';
 
+  // Detect VRM version (0.x or 1.0)
+  // metaVersion: "0" = VRM 0.x, "1" = VRM 1.0
+  let vrmVersion = 'Unknown';
+  if (meta?.metaVersion === '0') {
+    vrmVersion = '0.x';
+  } else if (meta?.metaVersion === '1') {
+    vrmVersion = '1.0';
+  }
+
   return {
     // File info
     fileName: fileName || null,
+    vrmVersion: vrmVersion,
 
     // VRM Meta info
     name: name,
     author: author,
-    version: meta?.metaVersion || meta?.version || 'Unknown',
 
     // Mesh info
     meshCount: meshDetails.length,
