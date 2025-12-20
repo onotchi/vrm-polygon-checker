@@ -83,6 +83,8 @@ let currentVRM = null;
 let clock = new THREE.Clock();
 let currentMixer = null;
 let currentAction = null;
+let currentVRMAnimation = null; // Store loaded VRMA for reapplying on VRM change
+let currentVRMAFileName = null;
 
 // VRMA loader setup
 const vrmaLoader = new GLTFLoader();
@@ -116,6 +118,18 @@ window.loadVRMFromBuffer = async function(arrayBuffer, fileName) {
 function setupVRM(gltf, fileName = null) {
   const vrm = gltf.userData.vrm;
 
+  // Stop current animation (but keep vrmAnimation for reapply)
+  if (currentAction) {
+    currentAction.stop();
+    currentAction = null;
+  }
+  if (currentMixer) {
+    currentMixer = null;
+  }
+
+  // Clear wireframe state
+  wireframeOriginalMaterials.clear();
+
   if (currentVRM) {
     scene.remove(currentVRM.scene);
   }
@@ -128,6 +142,15 @@ function setupVRM(gltf, fileName = null) {
 
   // Rotate VRM to face camera (VRM default is facing -Z, we want +Z)
   vrm.scene.rotation.y = Math.PI;
+
+  // Reapply animation if one was loaded
+  if (currentVRMAnimation) {
+    const clip = createVRMAnimationClip(currentVRMAnimation, currentVRM);
+    currentMixer = new THREE.AnimationMixer(currentVRM.scene);
+    currentAction = currentMixer.clipAction(clip);
+    currentAction.play();
+    console.log('Animation reapplied to new VRM');
+  }
 
   // Debug: Log humanoid structure
   console.log('VRM loaded:', vrm);
@@ -460,6 +483,10 @@ window.loadVRMAFromBuffer = async function(arrayBuffer, fileName) {
       currentAction.stop();
     }
 
+    // Store animation for reapplying on VRM change
+    currentVRMAnimation = vrmAnimation;
+    currentVRMAFileName = fileName;
+
     // Create animation clip for the current VRM
     const clip = createVRMAnimationClip(vrmAnimation, currentVRM);
 
@@ -491,6 +518,9 @@ window.stopAnimation = function() {
   if (currentMixer) {
     currentMixer = null;
   }
+  // Clear stored animation so it won't reapply on VRM change
+  currentVRMAnimation = null;
+  currentVRMAFileName = null;
   return JSON.stringify({ success: true });
 };
 
