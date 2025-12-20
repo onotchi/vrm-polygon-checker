@@ -40,6 +40,35 @@ const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 directionalLight.position.set(1, 1, 1);
 scene.add(directionalLight);
 
+// Grid helper
+const gridHelper = new THREE.GridHelper(10, 20, 0x888888, 0xcccccc);
+gridHelper.position.y = 0;
+scene.add(gridHelper);
+
+// Circle shadow under avatar (with gradient fade)
+const shadowCanvas = document.createElement('canvas');
+shadowCanvas.width = 64;
+shadowCanvas.height = 64;
+const shadowCtx = shadowCanvas.getContext('2d');
+const gradient = shadowCtx.createRadialGradient(32, 32, 0, 32, 32, 32);
+gradient.addColorStop(0, 'rgba(0, 0, 0, 0.4)');
+gradient.addColorStop(0.5, 'rgba(0, 0, 0, 0.2)');
+gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+shadowCtx.fillStyle = gradient;
+shadowCtx.fillRect(0, 0, 64, 64);
+
+const shadowTexture = new THREE.CanvasTexture(shadowCanvas);
+const shadowGeometry = new THREE.PlaneGeometry(0.8, 0.8);
+const shadowMaterial = new THREE.MeshBasicMaterial({
+  map: shadowTexture,
+  transparent: true,
+  depthWrite: false,
+});
+const shadowMesh = new THREE.Mesh(shadowGeometry, shadowMaterial);
+shadowMesh.rotation.x = -Math.PI / 2;
+shadowMesh.position.y = 0.001;
+shadowMesh.visible = false; // Hidden until VRM is loaded
+scene.add(shadowMesh);
 
 // VRM loader setup
 const loader = new GLTFLoader();
@@ -91,6 +120,9 @@ function setupVRM(gltf, fileName = null) {
 
   currentVRM = vrm;
   scene.add(vrm.scene);
+
+  // Show shadow when VRM is loaded
+  shadowMesh.visible = true;
 
   // Rotate VRM to face camera (VRM default is facing -Z, we want +Z)
   vrm.scene.rotation.y = Math.PI;
@@ -297,6 +329,15 @@ function animate() {
 
     // Update VRM (SpringBone, etc.)
     currentVRM.update(deltaTime);
+
+    // Update shadow position to follow avatar's hips
+    const hips = currentVRM.humanoid?.getRawBoneNode('hips');
+    if (hips) {
+      const worldPos = new THREE.Vector3();
+      hips.getWorldPosition(worldPos);
+      shadowMesh.position.x = worldPos.x;
+      shadowMesh.position.z = worldPos.z;
+    }
   }
 
   controls.update();
