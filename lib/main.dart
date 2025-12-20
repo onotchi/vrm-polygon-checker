@@ -74,7 +74,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   Map<String, dynamic>? _vrmInfo;
   bool _isLoading = false;
   String? _errorMessage;
-  double _ambientIntensity = 0.5;
+  double _ambientIntensity = 2.0;
   double _directionalIntensity = 1.0;
   Map<String, dynamic>? _animationInfo;
   bool _isLoadingAnimation = false;
