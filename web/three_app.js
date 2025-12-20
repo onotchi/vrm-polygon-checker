@@ -18,12 +18,14 @@ function getCanvasSize() {
 
 // Three.js setup
 const canvas = document.getElementById('three-canvas');
-const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
+const renderer = new THREE.WebGLRenderer({ canvas, alpha: false });
 const size = getCanvasSize();
 renderer.setSize(size.width, size.height);
 renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setClearColor(0xffffff, 1); // Default white background
 
 const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xffffff);
 const camera = new THREE.PerspectiveCamera(45, size.width / size.height, 0.1, 1000);
 camera.position.set(0, 1, 3);
 
@@ -532,6 +534,14 @@ window.setGridVisible = function(visible) {
 window.setShadowVisible = function(visible) {
   shadowMesh.visible = visible && currentVRM !== null;
   return JSON.stringify({ success: true, visible: visible });
+};
+
+// Background color control
+window.setBackgroundColor = function(r, g, b) {
+  const color = new THREE.Color(r / 255, g / 255, b / 255);
+  scene.background = color;
+  renderer.setClearColor(color, 1);
+  return JSON.stringify({ success: true, r: r, g: g, b: b });
 };
 
 // Mesh highlight state

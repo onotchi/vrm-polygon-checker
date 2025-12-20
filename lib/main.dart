@@ -49,6 +49,9 @@ external JSString _setGridVisible(JSBoolean visible);
 @JS('setShadowVisible')
 external JSString _setShadowVisible(JSBoolean visible);
 
+@JS('setBackgroundColor')
+external JSString _setBackgroundColor(JSNumber r, JSNumber g, JSNumber b);
+
 // Callback setter for VRM loaded event
 @JS('onVRMLoaded')
 external set _onVRMLoaded(JSFunction? callback);
@@ -106,6 +109,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   bool _meshSortAscending = true;
   bool _gridVisible = true;
   bool _shadowVisible = true;
+  Color _backgroundColor = const Color(0xFFFFFFFF);
 
   @override
   void initState() {
@@ -326,6 +330,21 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                               _setShadowVisible(value.toJS);
                             },
                           ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      const Text('Background', style: TextStyle(fontSize: 12)),
+                      const SizedBox(height: 4),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          _buildColorButton(const Color(0xFFFFFFFF)), // White (default)
+                          _buildColorButton(const Color(0xFF000000)), // Black
+                          _buildColorButton(const Color(0xFF87CEEB)), // Sky blue
+                          _buildColorButton(const Color(0xFF90EE90)), // Light green
+                          _buildColorButton(const Color(0xFFFFF9C4)), // Pastel yellow
+                          _buildColorButton(const Color(0xFFFFCDD2)), // Pastel red
                         ],
                       ),
                     ],
@@ -757,6 +776,34 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
           ),
         );
       }),
+    );
+  }
+
+  Widget _buildColorButton(Color color) {
+    final isSelected = _backgroundColor == color;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _backgroundColor = color;
+        });
+        _setBackgroundColor(
+          ((color.r * 255).round()).toJS,
+          ((color.g * 255).round()).toJS,
+          ((color.b * 255).round()).toJS,
+        );
+      },
+      child: Container(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          color: color,
+          border: Border.all(
+            color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey,
+            width: isSelected ? 2 : 1,
+          ),
+          borderRadius: BorderRadius.circular(4),
+        ),
+      ),
     );
   }
 
