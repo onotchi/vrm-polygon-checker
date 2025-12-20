@@ -18,6 +18,16 @@ function getCanvasSize() {
 
 // Three.js setup
 const canvas = document.getElementById('three-canvas');
+// Disable browser context menu on canvas and document (for drag operations)
+canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+document.addEventListener('contextmenu', (e) => {
+  // Only prevent if mouse is over canvas area
+  const rect = canvas.getBoundingClientRect();
+  if (e.clientX >= rect.left && e.clientX <= rect.right &&
+      e.clientY >= rect.top && e.clientY <= rect.bottom) {
+    e.preventDefault();
+  }
+});
 const renderer = new THREE.WebGLRenderer({ canvas, alpha: false });
 const size = getCanvasSize();
 renderer.setSize(size.width, size.height);
