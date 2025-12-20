@@ -223,7 +223,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                   color: Theme.of(context).colorScheme.inversePrimary,
                   child: Text(
                     Localization.get('settings'),
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                 ),
                 // Lighting controls
@@ -412,7 +412,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                   color: Theme.of(context).colorScheme.inversePrimary,
                   child: const Text(
                     'VRM Polygon Checker',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                 ),
                 // Content

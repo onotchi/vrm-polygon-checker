@@ -562,17 +562,21 @@ window.highlightMesh = function(meshName) {
     if (object.isMesh && object.name === meshName) {
       highlightedMesh = object;
 
-      // Store original materials and apply highlight
+      // Store original materials and replace with cloned highlighted materials
       if (Array.isArray(object.material)) {
-        originalMaterials.set(object, object.material.map(m => m.clone()));
-        object.material.forEach(m => {
-          m.emissive = new THREE.Color(0x4488ff);
-          m.emissiveIntensity = 0.3;
+        originalMaterials.set(object, object.material);
+        object.material = object.material.map(m => {
+          const cloned = m.clone();
+          cloned.emissive = new THREE.Color(0x4488ff);
+          cloned.emissiveIntensity = 0.3;
+          return cloned;
         });
       } else {
-        originalMaterials.set(object, object.material.clone());
-        object.material.emissive = new THREE.Color(0x4488ff);
-        object.material.emissiveIntensity = 0.3;
+        originalMaterials.set(object, object.material);
+        const cloned = object.material.clone();
+        cloned.emissive = new THREE.Color(0x4488ff);
+        cloned.emissiveIntensity = 0.3;
+        object.material = cloned;
       }
     }
   });
@@ -586,16 +590,8 @@ window.highlightMesh = function(meshName) {
 // Clear mesh highlight
 window.clearMeshHighlight = function() {
   if (highlightedMesh && originalMaterials.has(highlightedMesh)) {
-    const original = originalMaterials.get(highlightedMesh);
-    if (Array.isArray(highlightedMesh.material)) {
-      highlightedMesh.material.forEach((m, i) => {
-        m.emissive = original[i].emissive;
-        m.emissiveIntensity = original[i].emissiveIntensity;
-      });
-    } else {
-      highlightedMesh.material.emissive = original.emissive;
-      highlightedMesh.material.emissiveIntensity = original.emissiveIntensity;
-    }
+    // Restore original materials
+    highlightedMesh.material = originalMaterials.get(highlightedMesh);
     originalMaterials.delete(highlightedMesh);
     highlightedMesh = null;
   }
