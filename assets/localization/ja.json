@@ -26,6 +26,7 @@
   "expressions": "表情",
   "noExpressions": "表情がありません",
   "reset": "リセット",
+  "basicInfo": "基本情報",
   "showAll": "全表示",
   "hideAll": "全非表示",
   "wireframeOn": "全Wire",

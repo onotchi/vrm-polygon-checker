@@ -235,6 +235,25 @@ class InfoPanel extends StatelessWidget {
           ),
           const SizedBox(height: 8),
         ],
+        _buildBasicInfo(context),
+        if (meshDetails != null && meshDetails.isNotEmpty) ...[
+          const Divider(),
+          _buildMeshDetails(context, meshDetails),
+        ],
+        const Divider(),
+        _buildExpressionButtons(context),
+      ],
+    );
+  }
+
+  Widget _buildBasicInfo(BuildContext context) {
+    return ExpansionTile(
+      title: Text(Localization.get('basicInfo'), style: const TextStyle(fontWeight: FontWeight.bold)),
+      tilePadding: EdgeInsets.zero,
+      shape: const Border(),
+      collapsedShape: const Border(),
+      initiallyExpanded: true,
+      children: [
         _infoRow(Localization.get('name'), vrmInfo!['name']),
         _infoRow(Localization.get('author'), vrmInfo!['author']),
         const Divider(),
@@ -245,12 +264,6 @@ class InfoPanel extends StatelessWidget {
         _infoRow(Localization.get('bones'), '${vrmInfo!['boneCount']}'),
         _infoRow(Localization.get('materials'), '${vrmInfo!['materialCount']}'),
         _infoRow(Localization.get('textures'), '${vrmInfo!['textureCount']}'),
-        if (meshDetails != null && meshDetails.isNotEmpty) ...[
-          const Divider(),
-          _buildMeshDetails(context, meshDetails),
-        ],
-        const Divider(),
-        _buildExpressionButtons(context),
       ],
     );
   }
@@ -278,7 +291,7 @@ class InfoPanel extends StatelessWidget {
     }
 
     return ExpansionTile(
-      title: Text('${Localization.get('expressions')} (${clips.length})'),
+      title: Text('${Localization.get('expressions')} (${clips.length})', style: const TextStyle(fontWeight: FontWeight.bold)),
       tilePadding: EdgeInsets.zero,
       shape: const Border(),
       collapsedShape: const Border(),
@@ -395,7 +408,7 @@ class InfoPanel extends StatelessWidget {
     return ExpansionTile(
       title: Row(
         children: [
-          Text('${Localization.get('meshDetails')} (${meshDetails.length})'),
+          Text('${Localization.get('meshDetails')} (${meshDetails.length})', style: const TextStyle(fontWeight: FontWeight.bold)),
           const Spacer(),
           _buildSortButton(context, 'A', 'name'),
           const SizedBox(width: 4),
@@ -470,15 +483,15 @@ class InfoPanel extends StatelessWidget {
         ),
         // Mesh list
         ...List.generate(sortedDetails.length, (index) {
-        final m = sortedDetails[index];
-        final name = m['name'] as String;
-        final tris = m['triangles'] as int;
-        final mats = m['materials'] as int;
-        final isLast = index == sortedDetails.length - 1;
-        final isHidden = hiddenMeshes.contains(name);
-        return Container(
-          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-          child: Row(
+          final m = sortedDetails[index];
+          final name = m['name'] as String;
+          final tris = m['triangles'] as int;
+          final mats = m['materials'] as int;
+          final isLast = index == sortedDetails.length - 1;
+          final isHidden = hiddenMeshes.contains(name);
+          return Container(
+            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+            child: Row(
               children: [
                 // Visibility toggle
                 GestureDetector(
@@ -540,8 +553,8 @@ class InfoPanel extends StatelessWidget {
                 ),
               ],
             ),
-        );
-      }),
+          );
+        }),
       ],
     );
   }
