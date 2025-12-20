@@ -4,13 +4,14 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { VRMLoaderPlugin } from '@pixiv/three-vrm';
 import { VRMAnimationLoaderPlugin, createVRMAnimationClip } from '@pixiv/three-vrm-animation';
 
-// Panel width for Flutter UI
-const PANEL_WIDTH = 320;
+// Panel widths for Flutter UI
+const LEFT_PANEL_WIDTH = 200;
+const RIGHT_PANEL_WIDTH = 320;
 
 // Calculate canvas size
 function getCanvasSize() {
   return {
-    width: window.innerWidth - PANEL_WIDTH,
+    width: window.innerWidth - LEFT_PANEL_WIDTH - RIGHT_PANEL_WIDTH,
     height: window.innerHeight
   };
 }

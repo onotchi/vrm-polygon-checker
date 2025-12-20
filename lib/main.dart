@@ -171,7 +171,100 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
       backgroundColor: Colors.transparent,
       body: Row(
         children: [
-          // Left: Three.js canvas area with pointer event forwarding
+          // Left: Settings panel
+          Container(
+            width: 200,
+            color: Theme.of(context).colorScheme.surface,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                  child: const Text(
+                    'Settings',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                // Lighting controls
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Lighting',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text('Ambient', style: TextStyle(fontSize: 12)),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Slider(
+                              value: _ambientIntensity,
+                              min: 0,
+                              max: 2,
+                              onChanged: (value) {
+                                setState(() {
+                                  _ambientIntensity = value;
+                                });
+                                _setLightIntensity(
+                                  _ambientIntensity.toJS,
+                                  _directionalIntensity.toJS,
+                                );
+                              },
+                            ),
+                          ),
+                          SizedBox(
+                            width: 32,
+                            child: Text(
+                              _ambientIntensity.toStringAsFixed(1),
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Text('Direct', style: TextStyle(fontSize: 12)),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Slider(
+                              value: _directionalIntensity,
+                              min: 0,
+                              max: 3,
+                              onChanged: (value) {
+                                setState(() {
+                                  _directionalIntensity = value;
+                                });
+                                _setLightIntensity(
+                                  _ambientIntensity.toJS,
+                                  _directionalIntensity.toJS,
+                                );
+                              },
+                            ),
+                          ),
+                          SizedBox(
+                            width: 32,
+                            child: Text(
+                              _directionalIntensity.toStringAsFixed(1),
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Center: Three.js canvas area with pointer event forwarding
           Expanded(
             child: Listener(
               onPointerDown: (event) {
@@ -198,7 +291,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
               child: Container(color: Colors.transparent),
             ),
           ),
-          // Right: Flutter UI panel
+          // Right: VRM Info panel
           Container(
             width: 320,
             color: Theme.of(context).colorScheme.surface,
@@ -287,73 +380,6 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                           _buildInfoTable()
                         else
                           const Text('No VRM loaded.\nDrag & drop a file.'),
-                        const SizedBox(height: 24),
-                        const Divider(),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Lighting',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            const SizedBox(
-                              width: 80,
-                              child: Text('Ambient'),
-                            ),
-                            Expanded(
-                              child: Slider(
-                                value: _ambientIntensity,
-                                min: 0,
-                                max: 2,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _ambientIntensity = value;
-                                  });
-                                  _setLightIntensity(
-                                    _ambientIntensity.toJS,
-                                    _directionalIntensity.toJS,
-                                  );
-                                },
-                              ),
-                            ),
-                            SizedBox(
-                              width: 40,
-                              child: Text(_ambientIntensity.toStringAsFixed(1)),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            const SizedBox(
-                              width: 80,
-                              child: Text('Direct'),
-                            ),
-                            Expanded(
-                              child: Slider(
-                                value: _directionalIntensity,
-                                min: 0,
-                                max: 3,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _directionalIntensity = value;
-                                  });
-                                  _setLightIntensity(
-                                    _ambientIntensity.toJS,
-                                    _directionalIntensity.toJS,
-                                  );
-                                },
-                              ),
-                            ),
-                            SizedBox(
-                              width: 40,
-                              child: Text(_directionalIntensity.toStringAsFixed(1)),
-                            ),
-                          ],
-                        ),
                       ],
                     ),
                   ),
