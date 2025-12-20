@@ -25,5 +25,9 @@
   "meshDetails": "Mesh Details",
   "expressions": "Expressions",
   "noExpressions": "No expressions available",
-  "reset": "Reset"
+  "reset": "Reset",
+  "showAll": "Show All",
+  "hideAll": "Hide All",
+  "wireframeOn": "Wire All",
+  "wireframeOff": "Wire Off"
 }

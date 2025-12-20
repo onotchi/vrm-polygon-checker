@@ -23,6 +23,10 @@ class InfoPanel extends StatelessWidget {
   final ValueChanged<String> onMeshVisibilityChanged;
   final ValueChanged<String> onMeshFocusChanged;
   final ValueChanged<String> onMeshWireframeChanged;
+  final VoidCallback onShowAllMeshes;
+  final VoidCallback onHideAllMeshes;
+  final VoidCallback onWireframeAllMeshes;
+  final VoidCallback onClearAllWireframes;
   final ValueChanged<String> onSortChanged;
   final ValueChanged<double> onWidthChanged;
 
@@ -47,6 +51,10 @@ class InfoPanel extends StatelessWidget {
     required this.onMeshVisibilityChanged,
     required this.onMeshFocusChanged,
     required this.onMeshWireframeChanged,
+    required this.onShowAllMeshes,
+    required this.onHideAllMeshes,
+    required this.onWireframeAllMeshes,
+    required this.onClearAllWireframes,
     required this.onSortChanged,
     required this.onWidthChanged,
   });
@@ -382,6 +390,8 @@ class InfoPanel extends StatelessWidget {
 
   Widget _buildMeshDetails(BuildContext context, List<dynamic> meshDetails) {
     final sortedDetails = _getSortedMeshDetails(meshDetails);
+    final allHidden = hiddenMeshes.length == meshDetails.length;
+    final allWireframe = wireframeMeshes.length == meshDetails.length;
     return ExpansionTile(
       title: Row(
         children: [
@@ -396,7 +406,70 @@ class InfoPanel extends StatelessWidget {
       childrenPadding: const EdgeInsets.only(left: 8),
       shape: const Border(),
       collapsedShape: const Border(),
-      children: List.generate(sortedDetails.length, (index) {
+      children: [
+        // Bulk action buttons
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            children: [
+              // Visibility toggle all
+              GestureDetector(
+                onTap: allHidden ? onShowAllMeshes : onHideAllMeshes,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: allHidden ? Colors.grey.shade300 : Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        allHidden ? Icons.visibility : Icons.visibility_off,
+                        size: 14,
+                        color: Colors.grey.shade700,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        allHidden ? Localization.get('showAll') : Localization.get('hideAll'),
+                        style: const TextStyle(fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              // Wireframe toggle all
+              GestureDetector(
+                onTap: allWireframe ? onClearAllWireframes : onWireframeAllMeshes,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: allWireframe ? Colors.green.shade100 : Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.grid_on,
+                        size: 14,
+                        color: allWireframe ? Colors.green : Colors.grey.shade700,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        allWireframe ? Localization.get('wireframeOff') : Localization.get('wireframeOn'),
+                        style: const TextStyle(fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Mesh list
+        ...List.generate(sortedDetails.length, (index) {
         final m = sortedDetails[index];
         final name = m['name'] as String;
         final tris = m['triangles'] as int;
@@ -469,6 +542,7 @@ class InfoPanel extends StatelessWidget {
             ),
         );
       }),
+      ],
     );
   }
 }

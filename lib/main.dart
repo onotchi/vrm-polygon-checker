@@ -52,6 +52,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   // Mesh state
   final Set<String> _hiddenMeshes = {};
   String? _focusedMesh;
+  Set<String>? _hiddenMeshesBeforeFocus; // Store hidden state before focus
   final Set<String> _wireframeMeshes = {};
   String _meshSortKey = 'none';
   bool _meshSortAscending = true;
@@ -186,10 +187,28 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   void _handleMeshFocusChanged(String name) {
     setState(() {
       if (_focusedMesh == name) {
-        js.showAllMeshes();
+        // Unfocus: restore previous hidden state
         _focusedMesh = null;
         _hiddenMeshes.clear();
+        if (_hiddenMeshesBeforeFocus != null) {
+          _hiddenMeshes.addAll(_hiddenMeshesBeforeFocus!);
+          // Restore visibility in JS
+          final meshes = _vrmInfo?['meshDetails'] as List?;
+          if (meshes != null) {
+            for (final m in meshes) {
+              final meshName = m['name'] as String;
+              final shouldBeVisible = !_hiddenMeshes.contains(meshName);
+              js.setMeshVisibility(meshName.toJS, shouldBeVisible.toJS);
+            }
+          }
+        }
+        _hiddenMeshesBeforeFocus = null;
       } else {
+        // Focus: save current hidden state and show only this mesh
+        if (_focusedMesh == null) {
+          // Only save if not already focusing (switching focus keeps original state)
+          _hiddenMeshesBeforeFocus = Set.from(_hiddenMeshes);
+        }
         js.focusMesh(name.toJS);
         _focusedMesh = name;
         _hiddenMeshes.clear();
@@ -215,6 +234,53 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
         js.showWireframe(name.toJS);
         _wireframeMeshes.add(name);
       }
+    });
+  }
+
+  void _showAllMeshes() {
+    setState(() {
+      _hiddenMeshes.clear();
+      _focusedMesh = null;
+      _hiddenMeshesBeforeFocus = null;
+    });
+    js.showAllMeshes();
+  }
+
+  void _hideAllMeshes() {
+    final meshes = _vrmInfo?['meshDetails'] as List?;
+    if (meshes == null) return;
+    setState(() {
+      _focusedMesh = null;
+      _hiddenMeshesBeforeFocus = null;
+      _hiddenMeshes.clear();
+      for (final m in meshes) {
+        final name = m['name'] as String;
+        js.setMeshVisibility(name.toJS, false.toJS);
+        _hiddenMeshes.add(name);
+      }
+    });
+  }
+
+  void _wireframeAllMeshes() {
+    final meshes = _vrmInfo?['meshDetails'] as List?;
+    if (meshes == null) return;
+    setState(() {
+      for (final m in meshes) {
+        final name = m['name'] as String;
+        if (!_wireframeMeshes.contains(name)) {
+          js.showWireframe(name.toJS);
+          _wireframeMeshes.add(name);
+        }
+      }
+    });
+  }
+
+  void _clearAllWireframes() {
+    setState(() {
+      for (final name in _wireframeMeshes.toList()) {
+        js.clearWireframe(name.toJS);
+      }
+      _wireframeMeshes.clear();
     });
   }
 
@@ -260,6 +326,10 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
               onMeshVisibilityChanged: _handleMeshVisibilityChanged,
               onMeshFocusChanged: _handleMeshFocusChanged,
               onMeshWireframeChanged: _handleMeshWireframeChanged,
+              onShowAllMeshes: _showAllMeshes,
+              onHideAllMeshes: _hideAllMeshes,
+              onWireframeAllMeshes: _wireframeAllMeshes,
+              onClearAllWireframes: _clearAllWireframes,
               onSortChanged: _toggleMeshSort,
               onWidthChanged: (value) => setState(() => _infoPanelWidth = value),
             ),

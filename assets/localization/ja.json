@@ -25,5 +25,9 @@
   "meshDetails": "メッシュ詳細",
   "expressions": "表情",
   "noExpressions": "表情がありません",
-  "reset": "リセット"
+  "reset": "リセット",
+  "showAll": "全表示",
+  "hideAll": "全非表示",
+  "wireframeOn": "全Wire",
+  "wireframeOff": "全Wire解除"
 }
