@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { VRMLoaderPlugin } from '@pixiv/three-vrm';
+import { VRMAnimationLoaderPlugin, createVRMAnimationClip } from '@pixiv/three-vrm-animation';
 
 // Panel width for Flutter UI
 const PANEL_WIDTH = 320;
@@ -46,6 +47,15 @@ loader.register((parser) => new VRMLoaderPlugin(parser));
 // Current VRM model
 let currentVRM = null;
 
+// Animation state
+let clock = new THREE.Clock();
+let currentMixer = null;
+let currentAction = null;
+
+// VRMA loader setup
+const vrmaLoader = new GLTFLoader();
+vrmaLoader.register((parser) => new VRMAnimationLoaderPlugin(parser));
+
 // Load VRM from URL (will be called from Flutter)
 window.loadVRM = async function(url) {
   try {
@@ -80,6 +90,19 @@ function setupVRM(gltf, fileName = null) {
 
   currentVRM = vrm;
   scene.add(vrm.scene);
+
+  // Debug: Log humanoid structure
+  console.log('VRM loaded:', vrm);
+  console.log('Humanoid:', vrm.humanoid);
+  if (vrm.humanoid) {
+    console.log('HumanBones:', vrm.humanoid.humanBones);
+    console.log('Has getRawBoneNode:', typeof vrm.humanoid.getRawBoneNode);
+    console.log('Has getNormalizedBoneNode:', typeof vrm.humanoid.getNormalizedBoneNode);
+    // Try to get a bone
+    if (vrm.humanoid.humanBones) {
+      console.log('Spine bone:', vrm.humanoid.humanBones.spine);
+    }
+  }
 
   // Reset camera position
   controls.target.set(0, 1, 0);
@@ -168,13 +191,22 @@ function getVRMInfo(vrm, gltf, fileName = null) {
   };
 }
 
+
 // Animation loop
 function animate() {
   requestAnimationFrame(animate);
 
-  // Update VRM (for expressions, look-at, etc.)
+  const deltaTime = clock.getDelta();
+
+  // Update VRM
   if (currentVRM) {
-    currentVRM.update(1 / 60);
+    // Update animation mixer
+    if (currentMixer) {
+      currentMixer.update(deltaTime);
+    }
+
+    // Update VRM (SpringBone, etc.)
+    currentVRM.update(deltaTime);
   }
 
   controls.update();
@@ -272,6 +304,79 @@ document.addEventListener('drop', async (e) => {
 window.setLightIntensity = function(ambient, directional) {
   ambientLight.intensity = ambient;
   directionalLight.intensity = directional;
+};
+
+// Load VRMA from ArrayBuffer
+window.loadVRMAFromBuffer = async function(arrayBuffer, fileName) {
+  if (!currentVRM) {
+    return JSON.stringify({ error: 'No VRM loaded. Please load a VRM first.' });
+  }
+
+  try {
+    const gltf = await new Promise((resolve, reject) => {
+      vrmaLoader.parse(arrayBuffer, '', resolve, reject);
+    });
+
+    const vrmAnimation = gltf.userData.vrmAnimations?.[0];
+    if (!vrmAnimation) {
+      return JSON.stringify({ error: 'No VRM animation found in file.' });
+    }
+
+    // Stop current animation if any
+    if (currentAction) {
+      currentAction.stop();
+    }
+
+    // Create animation clip for the current VRM
+    const clip = createVRMAnimationClip(vrmAnimation, currentVRM);
+
+    // Create mixer and play animation
+    currentMixer = new THREE.AnimationMixer(currentVRM.scene);
+    currentAction = currentMixer.clipAction(clip);
+    currentAction.play();
+
+    console.log('VRMA loaded:', fileName);
+
+    return JSON.stringify({
+      success: true,
+      fileName: fileName,
+      duration: clip.duration,
+      trackCount: clip.tracks.length
+    });
+  } catch (e) {
+    console.error('VRMA load error:', e);
+    return JSON.stringify({ error: e.message });
+  }
+};
+
+// Stop current animation
+window.stopAnimation = function() {
+  if (currentAction) {
+    currentAction.stop();
+    currentAction = null;
+  }
+  if (currentMixer) {
+    currentMixer = null;
+  }
+  return JSON.stringify({ success: true });
+};
+
+// Open VRMA file picker
+window.openVRMAPicker = function() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.vrma';
+  input.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const arrayBuffer = await file.arrayBuffer();
+      const result = await window.loadVRMAFromBuffer(arrayBuffer, file.name);
+      if (window.onVRMALoaded) {
+        window.onVRMALoaded(result);
+      }
+    }
+  };
+  input.click();
 };
 
 window.getLightIntensity = function() {

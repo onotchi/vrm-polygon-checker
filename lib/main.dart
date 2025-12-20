@@ -7,6 +7,12 @@ import 'dart:convert';
 @JS('openFilePicker')
 external void _openFilePicker();
 
+@JS('openVRMAPicker')
+external void _openVRMAPicker();
+
+@JS('stopAnimation')
+external JSString _stopAnimation();
+
 @JS('onPointerDown')
 external void _onPointerDown(JSNumber x, JSNumber y, JSNumber button);
 
@@ -25,6 +31,10 @@ external void _setLightIntensity(JSNumber ambient, JSNumber directional);
 // Callback setter for VRM loaded event
 @JS('onVRMLoaded')
 external set _onVRMLoaded(JSFunction? callback);
+
+// Callback setter for VRMA loaded event
+@JS('onVRMALoaded')
+external set _onVRMALoaded(JSFunction? callback);
 
 void main() {
   runApp(const MyApp());
@@ -59,17 +69,21 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   String? _errorMessage;
   double _ambientIntensity = 0.5;
   double _directionalIntensity = 1.0;
+  Map<String, dynamic>? _animationInfo;
+  bool _isLoadingAnimation = false;
 
   @override
   void initState() {
     super.initState();
     // Set up callback for file picker and drag & drop
     _onVRMLoaded = _handleVRMLoaded.toJS;
+    _onVRMALoaded = _handleVRMALoaded.toJS;
   }
 
   @override
   void dispose() {
     _onVRMLoaded = null;
+    _onVRMALoaded = null;
     super.dispose();
   }
 
@@ -86,12 +100,45 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
     });
   }
 
+  void _handleVRMALoaded(JSString resultJson) {
+    final result = jsonDecode(resultJson.toDart) as Map<String, dynamic>;
+    setState(() {
+      _isLoadingAnimation = false;
+      if (result['error'] == null) {
+        _animationInfo = result;
+      } else {
+        _errorMessage = result['error'];
+      }
+    });
+  }
+
   void _openFile() {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
     _openFilePicker();
+  }
+
+  void _openAnimation() {
+    if (_vrmInfo == null) {
+      setState(() {
+        _errorMessage = 'Please load a VRM first.';
+      });
+      return;
+    }
+    setState(() {
+      _isLoadingAnimation = true;
+      _errorMessage = null;
+    });
+    _openVRMAPicker();
+  }
+
+  void _stopCurrentAnimation() {
+    _stopAnimation();
+    setState(() {
+      _animationInfo = null;
+    });
   }
 
 
@@ -159,6 +206,44 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                             label: const Text('Open VRM File'),
                           ),
                         ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: _isLoadingAnimation ? null : _openAnimation,
+                            icon: const Icon(Icons.animation),
+                            label: const Text('Load Animation (.vrma)'),
+                          ),
+                        ),
+                        if (_animationInfo != null) ...[
+                          const SizedBox(height: 8),
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.play_circle, color: Colors.green),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      _animationInfo!['fileName'] ?? 'Animation',
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    onPressed: _stopCurrentAnimation,
+                                    icon: const Icon(Icons.stop),
+                                    tooltip: 'Stop Animation',
+                                    iconSize: 20,
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 24),
                         const Text(
                           'VRM Info',
