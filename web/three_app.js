@@ -3,14 +3,26 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { VRMLoaderPlugin } from '@pixiv/three-vrm';
 
+// Panel width for Flutter UI
+const PANEL_WIDTH = 320;
+
+// Calculate canvas size
+function getCanvasSize() {
+  return {
+    width: window.innerWidth - PANEL_WIDTH,
+    height: window.innerHeight
+  };
+}
+
 // Three.js setup
 const canvas = document.getElementById('three-canvas');
 const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
+const size = getCanvasSize();
+renderer.setSize(size.width, size.height);
 renderer.setPixelRatio(window.devicePixelRatio);
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(45, size.width / size.height, 0.1, 1000);
 camera.position.set(0, 1, 3);
 
 // Orbit controls
@@ -108,14 +120,6 @@ function getVRMInfo(vrm, gltf) {
   };
 }
 
-// Expose canvas control for Flutter
-window.setThreeCanvasPointerEvents = function(enabled) {
-  canvas.style.pointerEvents = enabled ? 'auto' : 'none';
-};
-
-// Enable pointer events by default for OrbitControls
-canvas.style.pointerEvents = 'auto';
-
 // Animation loop
 function animate() {
   requestAnimationFrame(animate);
@@ -136,9 +140,70 @@ animate();
 
 // Handle resize
 window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
+  const size = getCanvasSize();
+  camera.aspect = size.width / size.height;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(size.width, size.height);
 });
+
+// Pointer event handlers for Flutter
+let isPointerDown = false;
+let lastPointerX = 0;
+let lastPointerY = 0;
+
+window.onPointerDown = function(x, y, buttons) {
+  isPointerDown = true;
+  lastPointerX = x;
+  lastPointerY = y;
+
+  // Simulate pointer event for OrbitControls
+  const event = new PointerEvent('pointerdown', {
+    clientX: x,
+    clientY: y,
+    button: (buttons & 1) ? 0 : ((buttons & 2) ? 2 : 1),
+    buttons: buttons,
+    pointerId: 1,
+    pointerType: 'mouse'
+  });
+  canvas.dispatchEvent(event);
+};
+
+window.onPointerMove = function(x, y) {
+  lastPointerX = x;
+  lastPointerY = y;
+
+  const event = new PointerEvent('pointermove', {
+    clientX: x,
+    clientY: y,
+    buttons: isPointerDown ? 1 : 0,
+    pointerId: 1,
+    pointerType: 'mouse'
+  });
+  canvas.dispatchEvent(event);
+};
+
+window.onPointerUp = function() {
+  isPointerDown = false;
+
+  const event = new PointerEvent('pointerup', {
+    clientX: lastPointerX,
+    clientY: lastPointerY,
+    button: 0,
+    buttons: 0,
+    pointerId: 1,
+    pointerType: 'mouse'
+  });
+  canvas.dispatchEvent(event);
+};
+
+window.onWheel = function(deltaY) {
+  const event = new WheelEvent('wheel', {
+    clientX: lastPointerX,
+    clientY: lastPointerY,
+    deltaY: deltaY,
+    deltaMode: 0
+  });
+  canvas.dispatchEvent(event);
+};
 
 console.log('Three.js app initialized!');
