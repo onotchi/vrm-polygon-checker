@@ -7,6 +7,9 @@ import 'dart:convert';
 @JS('loadVRM')
 external JSPromise<JSString> _loadVRM(JSString url);
 
+@JS('openFilePicker')
+external void _openFilePicker();
+
 @JS('onPointerDown')
 external void _onPointerDown(JSNumber x, JSNumber y, JSNumber button);
 
@@ -18,6 +21,10 @@ external void _onPointerUp();
 
 @JS('onWheel')
 external void _onWheel(JSNumber deltaY);
+
+// Callback setter for VRM loaded event
+@JS('onVRMLoaded')
+external set _onVRMLoaded(JSFunction? callback);
 
 Future<Map<String, dynamic>?> loadVRM(String url) async {
   try {
@@ -59,6 +66,40 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   Map<String, dynamic>? _vrmInfo;
   bool _isLoading = false;
   String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    // Set up callback for file picker and drag & drop
+    _onVRMLoaded = _handleVRMLoaded.toJS;
+  }
+
+  @override
+  void dispose() {
+    _onVRMLoaded = null;
+    super.dispose();
+  }
+
+  void _handleVRMLoaded(JSString resultJson) {
+    final result = jsonDecode(resultJson.toDart) as Map<String, dynamic>;
+    setState(() {
+      _isLoading = false;
+      if (result['error'] == null) {
+        _vrmInfo = result;
+        _errorMessage = null;
+      } else {
+        _errorMessage = result['error'];
+      }
+    });
+  }
+
+  void _openFile() {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    _openFilePicker();
+  }
 
   Future<void> _loadSampleVRM() async {
     setState(() {
@@ -156,11 +197,20 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                         else if (_vrmInfo != null)
                           _buildInfoTable()
                         else
-                          const Text('No VRM loaded.\nClick the button to load a sample.'),
+                          const Text('No VRM loaded.\nDrag & drop a file or use the buttons below.'),
                         const SizedBox(height: 16),
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
+                            onPressed: _isLoading ? null : _openFile,
+                            icon: const Icon(Icons.folder_open),
+                            label: const Text('Open VRM File'),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
                             onPressed: _isLoading ? null : _loadSampleVRM,
                             icon: const Icon(Icons.download),
                             label: const Text('Load Sample VRM'),
@@ -179,9 +229,20 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   }
 
   Widget _buildInfoTable() {
+    final fileName = _vrmInfo!['fileName'] as String?;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (fileName != null) ...[
+          Text(
+            fileName,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Colors.grey,
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
         _infoRow('Name', _vrmInfo!['name']),
         _infoRow('Author', _vrmInfo!['author']),
         const Divider(),

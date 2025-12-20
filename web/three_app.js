@@ -52,33 +52,75 @@ loader.register((parser) => new VRMLoaderPlugin(parser));
 // Current VRM model
 let currentVRM = null;
 
-// Load VRM function (will be called from Flutter)
+// Load VRM from URL (will be called from Flutter)
 window.loadVRM = async function(url) {
   try {
     const gltf = await loader.loadAsync(url);
-    const vrm = gltf.userData.vrm;
-
-    if (currentVRM) {
-      scene.remove(currentVRM.scene);
-    }
-
-    // Remove demo cube
-    scene.remove(cube);
-
-    currentVRM = vrm;
-    scene.add(vrm.scene);
-
-    // Get model info
-    const info = getVRMInfo(vrm, gltf);
-    return JSON.stringify(info);
+    return setupVRM(gltf);
   } catch (e) {
     console.error('VRM load error:', e);
     return JSON.stringify({ error: e.message });
   }
 };
 
+// Load VRM from ArrayBuffer (for local files)
+window.loadVRMFromBuffer = async function(arrayBuffer, fileName) {
+  try {
+    const gltf = await new Promise((resolve, reject) => {
+      loader.parse(arrayBuffer, '', resolve, reject);
+    });
+    return setupVRM(gltf, fileName);
+  } catch (e) {
+    console.error('VRM load error:', e);
+    return JSON.stringify({ error: e.message });
+  }
+};
+
+// Common VRM setup
+function setupVRM(gltf, fileName = null) {
+  const vrm = gltf.userData.vrm;
+
+  if (currentVRM) {
+    scene.remove(currentVRM.scene);
+  }
+
+  // Remove demo cube
+  scene.remove(cube);
+
+  currentVRM = vrm;
+  scene.add(vrm.scene);
+
+  // Reset camera position
+  controls.target.set(0, 1, 0);
+  camera.position.set(0, 1, 3);
+  controls.update();
+
+  // Get model info
+  const info = getVRMInfo(vrm, gltf, fileName);
+  return JSON.stringify(info);
+}
+
+// Open file picker dialog
+window.openFilePicker = function() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.vrm';
+  input.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const arrayBuffer = await file.arrayBuffer();
+      const result = await window.loadVRMFromBuffer(arrayBuffer, file.name);
+      // Notify Flutter about the loaded file
+      if (window.onVRMLoaded) {
+        window.onVRMLoaded(result);
+      }
+    }
+  };
+  input.click();
+};
+
 // Get VRM info
-function getVRMInfo(vrm, gltf) {
+function getVRMInfo(vrm, gltf, fileName = null) {
   let totalVertices = 0;
   let totalTriangles = 0;
   let meshCount = 0;
@@ -99,6 +141,9 @@ function getVRMInfo(vrm, gltf) {
   const meta = vrm.meta;
 
   return {
+    // File info
+    fileName: fileName || null,
+
     // VRM Meta info
     name: meta?.name || 'Unknown',
     author: meta?.authors?.[0] || 'Unknown',
@@ -205,5 +250,23 @@ window.onWheel = function(deltaY) {
   });
   canvas.dispatchEvent(event);
 };
+
+// Drag and drop support
+document.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'copy';
+});
+
+document.addEventListener('drop', async (e) => {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (file && file.name.endsWith('.vrm')) {
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await window.loadVRMFromBuffer(arrayBuffer, file.name);
+    if (window.onVRMLoaded) {
+      window.onVRMLoaded(result);
+    }
+  }
+});
 
 console.log('Three.js app initialized!');
