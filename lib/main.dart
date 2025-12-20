@@ -53,6 +53,12 @@ external JSString _setShadowVisible(JSBoolean visible);
 @JS('setBackgroundColor')
 external JSString _setBackgroundColor(JSNumber r, JSNumber g, JSNumber b);
 
+@JS('focusMesh')
+external JSString _focusMesh(JSString meshName);
+
+@JS('showAllMeshes')
+external JSString _showAllMeshes();
+
 // Callback setter for VRM loaded event
 @JS('onVRMLoaded')
 external set _onVRMLoaded(JSFunction? callback);
@@ -108,6 +114,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   String? _activeExpression;
   String? _selectedMesh;
   final Set<String> _hiddenMeshes = {};
+  String? _focusedMesh; // Mesh currently in focus mode (all others hidden)
   String _meshSortKey = 'none'; // 'none', 'name', 'triangles'
   bool _meshSortAscending = true;
   bool _gridVisible = true;
@@ -143,6 +150,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
         _activeExpression = null;
         _selectedMesh = null;
         _hiddenMeshes.clear();
+        _focusedMesh = null;
       } else {
         _errorMessage = result['error'];
       }
@@ -750,6 +758,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
             ),
             child: Row(
               children: [
+                // Visibility toggle (eye icon)
                 GestureDetector(
                   onTap: () {
                     final newVisible = isHidden;
@@ -763,11 +772,49 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                     });
                   },
                   child: Padding(
-                    padding: const EdgeInsets.only(right: 4),
+                    padding: const EdgeInsets.only(right: 2),
                     child: Icon(
                       isHidden ? Icons.visibility_off : Icons.visibility,
                       size: 16,
                       color: isHidden ? Colors.grey : Colors.grey.shade600,
+                    ),
+                  ),
+                ),
+                // Focus toggle (magnifying glass icon)
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      if (_focusedMesh == name) {
+                        // Unfocus: show all meshes
+                        _showAllMeshes();
+                        _focusedMesh = null;
+                        _hiddenMeshes.clear();
+                      } else {
+                        // Focus: hide all except this mesh
+                        _focusMesh(name.toJS);
+                        _focusedMesh = name;
+                        // Update hidden meshes set to reflect focus state
+                        _hiddenMeshes.clear();
+                        final meshes = _vrmInfo?['meshDetails'] as List?;
+                        if (meshes != null) {
+                          for (final m in meshes) {
+                            final meshName = m['name'] as String;
+                            if (meshName != name) {
+                              _hiddenMeshes.add(meshName);
+                            }
+                          }
+                        }
+                      }
+                    });
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: Icon(
+                      Icons.center_focus_strong,
+                      size: 16,
+                      color: _focusedMesh == name
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.grey.shade600,
                     ),
                   ),
                 ),

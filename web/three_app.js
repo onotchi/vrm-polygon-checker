@@ -618,4 +618,43 @@ window.setMeshVisibility = function(meshName, visible) {
   return JSON.stringify({ error: 'Mesh not found: ' + meshName });
 };
 
+// Focus on a specific mesh (hide all others)
+window.focusMesh = function(meshName) {
+  if (!currentVRM) {
+    return JSON.stringify({ error: 'No VRM loaded.' });
+  }
+
+  let found = false;
+  currentVRM.scene.traverse((object) => {
+    if (object.isMesh) {
+      if (object.name === meshName) {
+        object.visible = true;
+        found = true;
+      } else {
+        object.visible = false;
+      }
+    }
+  });
+
+  if (found) {
+    return JSON.stringify({ success: true, focusedMesh: meshName });
+  }
+  return JSON.stringify({ error: 'Mesh not found: ' + meshName });
+};
+
+// Show all meshes (unfocus)
+window.showAllMeshes = function() {
+  if (!currentVRM) {
+    return JSON.stringify({ error: 'No VRM loaded.' });
+  }
+
+  currentVRM.scene.traverse((object) => {
+    if (object.isMesh) {
+      object.visible = true;
+    }
+  });
+
+  return JSON.stringify({ success: true });
+};
+
 console.log('Three.js app initialized!');
