@@ -92,6 +92,9 @@ function setupVRM(gltf, fileName = null) {
   currentVRM = vrm;
   scene.add(vrm.scene);
 
+  // Rotate VRM to face camera (VRM default is facing -Z, we want +Z)
+  vrm.scene.rotation.y = Math.PI;
+
   // Debug: Log humanoid structure
   console.log('VRM loaded:', vrm);
   console.log('Humanoid:', vrm.humanoid);
@@ -202,8 +205,72 @@ function getVRMInfo(vrm, gltf, fileName = null) {
 
     // Texture info
     textureCount: gltf.parser?.json?.textures?.length || 0,
+
+    // BlendShape/Expression info
+    blendShapeClips: getBlendShapeClips(vrm),
   };
 }
+
+// Get BlendShape/Expression clips from VRM
+function getBlendShapeClips(vrm) {
+  // VRM 1.0 uses expressionManager
+  if (vrm.expressionManager) {
+    const expressions = vrm.expressionManager.expressions || [];
+    return expressions.map(expr => expr.expressionName).filter(name => name);
+  }
+  // VRM 0.x uses blendShapeProxy
+  if (vrm.blendShapeProxy) {
+    const blendShapeGroups = vrm.blendShapeProxy.blendShapeGroups || [];
+    return blendShapeGroups.map(group => group.name).filter(name => name);
+  }
+  return [];
+}
+
+// Set expression value (0.0 - 1.0)
+window.setExpression = function(expressionName, value) {
+  if (!currentVRM) {
+    return JSON.stringify({ error: 'No VRM loaded.' });
+  }
+
+  try {
+    // VRM 1.0
+    if (currentVRM.expressionManager) {
+      currentVRM.expressionManager.setValue(expressionName, value);
+      return JSON.stringify({ success: true, expression: expressionName, value: value });
+    }
+    // VRM 0.x
+    if (currentVRM.blendShapeProxy) {
+      currentVRM.blendShapeProxy.setValue(expressionName, value);
+      return JSON.stringify({ success: true, expression: expressionName, value: value });
+    }
+    return JSON.stringify({ error: 'No expression manager found.' });
+  } catch (e) {
+    console.error('Expression error:', e);
+    return JSON.stringify({ error: e.message });
+  }
+};
+
+// Reset all expressions to 0
+window.resetExpressions = function() {
+  if (!currentVRM) {
+    return JSON.stringify({ error: 'No VRM loaded.' });
+  }
+
+  try {
+    const clips = getBlendShapeClips(currentVRM);
+    clips.forEach(name => {
+      if (currentVRM.expressionManager) {
+        currentVRM.expressionManager.setValue(name, 0);
+      } else if (currentVRM.blendShapeProxy) {
+        currentVRM.blendShapeProxy.setValue(name, 0);
+      }
+    });
+    return JSON.stringify({ success: true });
+  } catch (e) {
+    console.error('Reset expressions error:', e);
+    return JSON.stringify({ error: e.message });
+  }
+};
 
 
 // Animation loop

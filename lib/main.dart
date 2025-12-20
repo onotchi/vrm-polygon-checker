@@ -13,6 +13,12 @@ external void _openVRMAPicker();
 @JS('stopAnimation')
 external JSString _stopAnimation();
 
+@JS('setExpression')
+external JSString _setExpression(JSString expressionName, JSNumber value);
+
+@JS('resetExpressions')
+external JSString _resetExpressions();
+
 @JS('onPointerDown')
 external void _onPointerDown(JSNumber x, JSNumber y, JSNumber button);
 
@@ -78,6 +84,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   double _directionalIntensity = 1.0;
   Map<String, dynamic>? _animationInfo;
   bool _isLoadingAnimation = false;
+  String? _activeExpression;
 
   @override
   void initState() {
@@ -105,6 +112,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
       if (result['error'] == null) {
         _vrmInfo = result;
         _errorMessage = null;
+        _activeExpression = null;
       } else {
         _errorMessage = result['error'];
       }
@@ -423,6 +431,85 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
           const Divider(),
           _buildMeshDetails(meshDetails),
         ],
+        const Divider(),
+        _buildExpressionButtons(),
+      ],
+    );
+  }
+
+  Widget _buildExpressionButtons() {
+    final clips = _vrmInfo!['blendShapeClips'] as List<dynamic>?;
+    if (clips == null || clips.isEmpty) {
+      return const Text(
+        'No expressions available',
+        style: TextStyle(color: Colors.grey, fontSize: 12),
+      );
+    }
+
+    return ExpansionTile(
+      title: Text('Expressions (${clips.length})'),
+      tilePadding: EdgeInsets.zero,
+      initiallyExpanded: true,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              // Reset button
+              OutlinedButton(
+                onPressed: () {
+                  _resetExpressions();
+                  setState(() {
+                    _activeExpression = null;
+                  });
+                },
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  minimumSize: Size.zero,
+                ),
+                child: const Text('Reset', style: TextStyle(fontSize: 11)),
+              ),
+              // Expression buttons
+              ...clips.map((clip) {
+                final name = clip as String;
+                final isActive = _activeExpression == name;
+                return ElevatedButton(
+                  onPressed: () {
+                    if (isActive) {
+                      // Turn off
+                      _setExpression(name.toJS, (0.0).toJS);
+                      setState(() {
+                        _activeExpression = null;
+                      });
+                    } else {
+                      // Reset previous and set new
+                      if (_activeExpression != null) {
+                        _setExpression(_activeExpression!.toJS, (0.0).toJS);
+                      }
+                      _setExpression(name.toJS, (1.0).toJS);
+                      setState(() {
+                        _activeExpression = name;
+                      });
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    minimumSize: Size.zero,
+                    backgroundColor: isActive
+                        ? Theme.of(context).colorScheme.primary
+                        : null,
+                    foregroundColor: isActive
+                        ? Theme.of(context).colorScheme.onPrimary
+                        : null,
+                  ),
+                  child: Text(name, style: const TextStyle(fontSize: 11)),
+                );
+              }),
+            ],
+          ),
+        ),
       ],
     );
   }
