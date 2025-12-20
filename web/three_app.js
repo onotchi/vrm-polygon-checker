@@ -540,4 +540,24 @@ window.clearMeshHighlight = function() {
   return JSON.stringify({ success: true });
 };
 
+// Set mesh visibility
+window.setMeshVisibility = function(meshName, visible) {
+  if (!currentVRM) {
+    return JSON.stringify({ error: 'No VRM loaded.' });
+  }
+
+  let found = false;
+  currentVRM.scene.traverse((object) => {
+    if (object.isMesh && object.name === meshName) {
+      object.visible = visible;
+      found = true;
+    }
+  });
+
+  if (found) {
+    return JSON.stringify({ success: true, mesh: meshName, visible: visible });
+  }
+  return JSON.stringify({ error: 'Mesh not found: ' + meshName });
+};
+
 console.log('Three.js app initialized!');

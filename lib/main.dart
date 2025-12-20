@@ -40,6 +40,9 @@ external JSString _highlightMesh(JSString meshName);
 @JS('clearMeshHighlight')
 external JSString _clearMeshHighlight();
 
+@JS('setMeshVisibility')
+external JSString _setMeshVisibility(JSString meshName, JSBoolean visible);
+
 // Callback setter for VRM loaded event
 @JS('onVRMLoaded')
 external set _onVRMLoaded(JSFunction? callback);
@@ -92,6 +95,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   bool _isLoadingAnimation = false;
   String? _activeExpression;
   String? _selectedMesh;
+  final Set<String> _hiddenMeshes = {};
 
   @override
   void initState() {
@@ -121,6 +125,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
         _errorMessage = null;
         _activeExpression = null;
         _selectedMesh = null;
+        _hiddenMeshes.clear();
       } else {
         _errorMessage = result['error'];
       }
@@ -559,6 +564,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
         final mats = m['materials'] as int;
         final isLast = index == meshDetails.length - 1;
         final isSelected = _selectedMesh == name;
+        final isHidden = _hiddenMeshes.contains(name);
         return InkWell(
           onTap: () {
             if (isSelected) {
@@ -577,12 +583,33 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
             padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
             decoration: BoxDecoration(
               color: isSelected
-                  ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.5)
+                  ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5)
                   : null,
               borderRadius: BorderRadius.circular(4),
             ),
             child: Row(
               children: [
+                GestureDetector(
+                  onTap: () {
+                    final newVisible = isHidden;
+                    _setMeshVisibility(name.toJS, newVisible.toJS);
+                    setState(() {
+                      if (newVisible) {
+                        _hiddenMeshes.remove(name);
+                      } else {
+                        _hiddenMeshes.add(name);
+                      }
+                    });
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: Icon(
+                      isHidden ? Icons.visibility_off : Icons.visibility,
+                      size: 16,
+                      color: isHidden ? Colors.grey : Colors.grey.shade600,
+                    ),
+                  ),
+                ),
                 Text(
                   isLast ? '└─ ' : '├─ ',
                   style: const TextStyle(color: Colors.grey),
@@ -594,6 +621,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: isSelected ? FontWeight.bold : null,
+                      color: isHidden ? Colors.grey : null,
                     ),
                   ),
                 ),
