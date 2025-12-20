@@ -96,6 +96,8 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   String? _activeExpression;
   String? _selectedMesh;
   final Set<String> _hiddenMeshes = {};
+  String _meshSortKey = 'none'; // 'none', 'name', 'triangles'
+  bool _meshSortAscending = true;
 
   @override
   void initState() {
@@ -550,19 +552,93 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
     );
   }
 
+  List<Map<String, dynamic>> _getSortedMeshDetails(List<dynamic> meshDetails) {
+    final list = meshDetails.cast<Map<String, dynamic>>().toList();
+    if (_meshSortKey == 'none') return list;
+
+    list.sort((a, b) {
+      int result;
+      if (_meshSortKey == 'name') {
+        result = (a['name'] as String).compareTo(b['name'] as String);
+      } else {
+        result = (a['triangles'] as int).compareTo(b['triangles'] as int);
+      }
+      return _meshSortAscending ? result : -result;
+    });
+    return list;
+  }
+
+  void _toggleMeshSort(String key) {
+    setState(() {
+      if (_meshSortKey == key) {
+        if (_meshSortAscending) {
+          _meshSortAscending = false;
+        } else {
+          _meshSortKey = 'none';
+          _meshSortAscending = true;
+        }
+      } else {
+        _meshSortKey = key;
+        _meshSortAscending = true;
+      }
+    });
+  }
+
+  Widget _buildSortButton(String label, String key) {
+    final isActive = _meshSortKey == key;
+    return GestureDetector(
+      onTap: () => _toggleMeshSort(key),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: isActive
+              ? Theme.of(context).colorScheme.primaryContainer
+              : Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+            if (isActive)
+              Icon(
+                _meshSortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                size: 12,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildMeshDetails(List<dynamic> meshDetails) {
+    final sortedDetails = _getSortedMeshDetails(meshDetails);
     return ExpansionTile(
-      title: Text('Mesh Details (${meshDetails.length})'),
+      title: Row(
+        children: [
+          Text('Mesh Details (${meshDetails.length})'),
+          const Spacer(),
+          _buildSortButton('A', 'name'),
+          const SizedBox(width: 4),
+          _buildSortButton('#', 'triangles'),
+        ],
+      ),
       tilePadding: EdgeInsets.zero,
       childrenPadding: const EdgeInsets.only(left: 8),
       shape: const Border(),
       collapsedShape: const Border(),
-      children: List.generate(meshDetails.length, (index) {
-        final m = meshDetails[index] as Map<String, dynamic>;
+      children: List.generate(sortedDetails.length, (index) {
+        final m = sortedDetails[index];
         final name = m['name'] as String;
         final tris = m['triangles'] as int;
         final mats = m['materials'] as int;
-        final isLast = index == meshDetails.length - 1;
+        final isLast = index == sortedDetails.length - 1;
         final isSelected = _selectedMesh == name;
         final isHidden = _hiddenMeshes.contains(name);
         return InkWell(
