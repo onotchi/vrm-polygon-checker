@@ -281,4 +281,17 @@ document.addEventListener('drop', async (e) => {
   }
 });
 
+// Light intensity control
+window.setLightIntensity = function(ambient, directional) {
+  ambientLight.intensity = ambient;
+  directionalLight.intensity = directional;
+};
+
+window.getLightIntensity = function() {
+  return JSON.stringify({
+    ambient: ambientLight.intensity,
+    directional: directionalLight.intensity
+  });
+};
+
 console.log('Three.js app initialized!');

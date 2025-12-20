@@ -22,6 +22,9 @@ external void _onPointerUp();
 @JS('onWheel')
 external void _onWheel(JSNumber deltaY);
 
+@JS('setLightIntensity')
+external void _setLightIntensity(JSNumber ambient, JSNumber directional);
+
 // Callback setter for VRM loaded event
 @JS('onVRMLoaded')
 external set _onVRMLoaded(JSFunction? callback);
@@ -67,6 +70,8 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   Map<String, dynamic>? _vrmInfo;
   bool _isLoading = false;
   String? _errorMessage;
+  double _ambientIntensity = 0.5;
+  double _directionalIntensity = 1.0;
 
   @override
   void initState() {
@@ -216,6 +221,73 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                             icon: const Icon(Icons.download),
                             label: const Text('Load Sample VRM'),
                           ),
+                        ),
+                        const SizedBox(height: 24),
+                        const Divider(),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Lighting',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            const SizedBox(
+                              width: 80,
+                              child: Text('Ambient'),
+                            ),
+                            Expanded(
+                              child: Slider(
+                                value: _ambientIntensity,
+                                min: 0,
+                                max: 2,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _ambientIntensity = value;
+                                  });
+                                  _setLightIntensity(
+                                    _ambientIntensity.toJS,
+                                    _directionalIntensity.toJS,
+                                  );
+                                },
+                              ),
+                            ),
+                            SizedBox(
+                              width: 40,
+                              child: Text(_ambientIntensity.toStringAsFixed(1)),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            const SizedBox(
+                              width: 80,
+                              child: Text('Direct'),
+                            ),
+                            Expanded(
+                              child: Slider(
+                                value: _directionalIntensity,
+                                min: 0,
+                                max: 3,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _directionalIntensity = value;
+                                  });
+                                  _setLightIntensity(
+                                    _ambientIntensity.toJS,
+                                    _directionalIntensity.toJS,
+                                  );
+                                },
+                              ),
+                            ),
+                            SizedBox(
+                              width: 40,
+                              child: Text(_directionalIntensity.toStringAsFixed(1)),
+                            ),
+                          ],
                         ),
                       ],
                     ),
