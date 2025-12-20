@@ -4,9 +4,6 @@ import 'dart:js_interop';
 import 'dart:convert';
 
 // JavaScript interop
-@JS('loadVRM')
-external JSPromise<JSString> _loadVRM(JSString url);
-
 @JS('openFilePicker')
 external void _openFilePicker();
 
@@ -28,16 +25,6 @@ external void _setLightIntensity(JSNumber ambient, JSNumber directional);
 // Callback setter for VRM loaded event
 @JS('onVRMLoaded')
 external set _onVRMLoaded(JSFunction? callback);
-
-Future<Map<String, dynamic>?> loadVRM(String url) async {
-  try {
-    final result = await _loadVRM(url.toJS).toDart;
-    return jsonDecode(result.toDart) as Map<String, dynamic>;
-  } catch (e) {
-    debugPrint('Error loading VRM: $e');
-    return null;
-  }
-}
 
 void main() {
   runApp(const MyApp());
@@ -107,27 +94,6 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
     _openFilePicker();
   }
 
-  Future<void> _loadSampleVRM() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    // Sample VRM from three-vrm examples
-    const sampleUrl =
-        'https://pixiv.github.io/three-vrm/packages/three-vrm/examples/models/VRM1_Constraint_Twist_Sample.vrm';
-
-    final info = await loadVRM(sampleUrl);
-
-    setState(() {
-      _isLoading = false;
-      if (info != null && info['error'] == null) {
-        _vrmInfo = info;
-      } else {
-        _errorMessage = info?['error'] ?? 'Failed to load VRM';
-      }
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -185,6 +151,15 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: _isLoading ? null : _openFile,
+                            icon: const Icon(Icons.folder_open),
+                            label: const Text('Open VRM File'),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
                         const Text(
                           'VRM Info',
                           style: TextStyle(
@@ -203,25 +178,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                         else if (_vrmInfo != null)
                           _buildInfoTable()
                         else
-                          const Text('No VRM loaded.\nDrag & drop a file or use the buttons below.'),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: _isLoading ? null : _openFile,
-                            icon: const Icon(Icons.folder_open),
-                            label: const Text('Open VRM File'),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton.icon(
-                            onPressed: _isLoading ? null : _loadSampleVRM,
-                            icon: const Icon(Icons.download),
-                            label: const Text('Load Sample VRM'),
-                          ),
-                        ),
+                          const Text('No VRM loaded.\nDrag & drop a file.'),
                         const SizedBox(height: 24),
                         const Divider(),
                         const SizedBox(height: 8),

@@ -38,12 +38,6 @@ const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 directionalLight.position.set(1, 1, 1);
 scene.add(directionalLight);
 
-// Demo cube (will be removed when VRM is loaded)
-const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-const material = new THREE.MeshStandardMaterial({ color: 0x6699ff });
-const cube = new THREE.Mesh(geometry, material);
-cube.position.set(0, 1, 0);
-scene.add(cube);
 
 // VRM loader setup
 const loader = new GLTFLoader();
@@ -83,9 +77,6 @@ function setupVRM(gltf, fileName = null) {
   if (currentVRM) {
     scene.remove(currentVRM.scene);
   }
-
-  // Remove demo cube
-  scene.remove(cube);
 
   currentVRM = vrm;
   scene.add(vrm.scene);
@@ -180,10 +171,6 @@ function getVRMInfo(vrm, gltf, fileName = null) {
 // Animation loop
 function animate() {
   requestAnimationFrame(animate);
-
-  // Rotate demo cube
-  cube.rotation.x += 0.01;
-  cube.rotation.y += 0.01;
 
   // Update VRM (for expressions, look-at, etc.)
   if (currentVRM) {
