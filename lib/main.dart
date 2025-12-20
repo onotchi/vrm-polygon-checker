@@ -53,6 +53,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   String? _selectedMesh;
   final Set<String> _hiddenMeshes = {};
   String? _focusedMesh;
+  String? _wireframeMesh;
   String _meshSortKey = 'none';
   bool _meshSortAscending = true;
 
@@ -92,6 +93,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
         _selectedMesh = null;
         _hiddenMeshes.clear();
         _focusedMesh = null;
+        _wireframeMesh = null;
       } else {
         _errorMessage = result['error'];
       }
@@ -203,6 +205,18 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
     });
   }
 
+  void _handleMeshWireframeChanged(String name) {
+    setState(() {
+      if (_wireframeMesh == name) {
+        js.clearWireframe();
+        _wireframeMesh = null;
+      } else {
+        js.showWireframe(name.toJS);
+        _wireframeMesh = name;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -232,6 +246,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
             activeExpression: _activeExpression,
             selectedMesh: _selectedMesh,
             focusedMesh: _focusedMesh,
+            wireframeMesh: _wireframeMesh,
             hiddenMeshes: _hiddenMeshes,
             meshSortKey: _meshSortKey,
             meshSortAscending: _meshSortAscending,
@@ -242,6 +257,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
             onMeshSelected: (value) => setState(() => _selectedMesh = value),
             onMeshVisibilityChanged: _handleMeshVisibilityChanged,
             onMeshFocusChanged: _handleMeshFocusChanged,
+            onMeshWireframeChanged: _handleMeshWireframeChanged,
             onSortChanged: _toggleMeshSort,
           ),
         ],

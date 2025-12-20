@@ -548,6 +548,10 @@ window.setBackgroundColor = function(r, g, b) {
 let highlightedMesh = null;
 let originalMaterials = new Map();
 
+// Wireframe state
+let wireframeMesh = null;
+let wireframeOriginalMaterials = new Map();
+
 // Highlight a specific mesh by name
 window.highlightMesh = function(meshName) {
   // Clear previous highlight
@@ -654,6 +658,54 @@ window.showAllMeshes = function() {
     }
   });
 
+  return JSON.stringify({ success: true });
+};
+
+// Show wireframe for a specific mesh (using material.wireframe for skeleton following)
+window.showWireframe = function(meshName) {
+  // Clear previous wireframe
+  window.clearWireframe();
+
+  if (!currentVRM) {
+    return JSON.stringify({ error: 'No VRM loaded.' });
+  }
+
+  // Find the mesh
+  currentVRM.scene.traverse((object) => {
+    if (object.isMesh && object.name === meshName) {
+      wireframeMesh = object;
+
+      // Store original materials and replace with cloned wireframe materials
+      if (Array.isArray(object.material)) {
+        wireframeOriginalMaterials.set(object, object.material);
+        object.material = object.material.map(m => {
+          const cloned = m.clone();
+          cloned.wireframe = true;
+          return cloned;
+        });
+      } else {
+        wireframeOriginalMaterials.set(object, object.material);
+        const cloned = object.material.clone();
+        cloned.wireframe = true;
+        object.material = cloned;
+      }
+    }
+  });
+
+  if (wireframeMesh) {
+    return JSON.stringify({ success: true, mesh: meshName });
+  }
+  return JSON.stringify({ error: 'Mesh not found: ' + meshName });
+};
+
+// Clear wireframe
+window.clearWireframe = function() {
+  if (wireframeMesh && wireframeOriginalMaterials.has(wireframeMesh)) {
+    // Restore original materials
+    wireframeMesh.material = wireframeOriginalMaterials.get(wireframeMesh);
+    wireframeOriginalMaterials.delete(wireframeMesh);
+    wireframeMesh = null;
+  }
   return JSON.stringify({ success: true });
 };
 

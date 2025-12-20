@@ -51,6 +51,12 @@ external JSString focusMesh(JSString meshName);
 @JS('showAllMeshes')
 external JSString showAllMeshes();
 
+@JS('showWireframe')
+external JSString showWireframe(JSString meshName);
+
+@JS('clearWireframe')
+external JSString clearWireframe();
+
 // Display settings
 @JS('setGridVisible')
 external JSString setGridVisible(JSBoolean visible);

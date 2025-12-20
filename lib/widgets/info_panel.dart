@@ -12,6 +12,7 @@ class InfoPanel extends StatelessWidget {
   final String? activeExpression;
   final String? selectedMesh;
   final String? focusedMesh;
+  final String? wireframeMesh;
   final Set<String> hiddenMeshes;
   final String meshSortKey;
   final bool meshSortAscending;
@@ -22,6 +23,7 @@ class InfoPanel extends StatelessWidget {
   final ValueChanged<String?> onMeshSelected;
   final ValueChanged<String> onMeshVisibilityChanged;
   final ValueChanged<String> onMeshFocusChanged;
+  final ValueChanged<String> onMeshWireframeChanged;
   final ValueChanged<String> onSortChanged;
 
   const InfoPanel({
@@ -34,6 +36,7 @@ class InfoPanel extends StatelessWidget {
     required this.activeExpression,
     required this.selectedMesh,
     required this.focusedMesh,
+    required this.wireframeMesh,
     required this.hiddenMeshes,
     required this.meshSortKey,
     required this.meshSortAscending,
@@ -44,6 +47,7 @@ class InfoPanel extends StatelessWidget {
     required this.onMeshSelected,
     required this.onMeshVisibilityChanged,
     required this.onMeshFocusChanged,
+    required this.onMeshWireframeChanged,
     required this.onSortChanged,
   });
 
@@ -416,12 +420,26 @@ class InfoPanel extends StatelessWidget {
                 GestureDetector(
                   onTap: () => onMeshFocusChanged(name),
                   child: Padding(
-                    padding: const EdgeInsets.only(right: 4),
+                    padding: const EdgeInsets.only(right: 2),
                     child: Icon(
-                      Icons.center_focus_strong,
+                      Icons.search,
                       size: 16,
                       color: focusedMesh == name
                           ? Theme.of(context).colorScheme.primary
+                          : Colors.grey.shade600,
+                    ),
+                  ),
+                ),
+                // Wireframe toggle
+                GestureDetector(
+                  onTap: () => onMeshWireframeChanged(name),
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: Icon(
+                      Icons.grid_on,
+                      size: 16,
+                      color: wireframeMesh == name
+                          ? Colors.green
                           : Colors.grey.shade600,
                     ),
                   ),
