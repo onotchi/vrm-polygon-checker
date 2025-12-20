@@ -450,6 +450,8 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
       title: Text('Expressions (${clips.length})'),
       tilePadding: EdgeInsets.zero,
       initiallyExpanded: true,
+      shape: const Border(),
+      collapsedShape: const Border(),
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: 8),
@@ -519,6 +521,8 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
       title: Text('Mesh Details (${meshDetails.length})'),
       tilePadding: EdgeInsets.zero,
       childrenPadding: const EdgeInsets.only(left: 8),
+      shape: const Border(),
+      collapsedShape: const Border(),
       children: List.generate(meshDetails.length, (index) {
         final m = meshDetails[index] as Map<String, dynamic>;
         final name = m['name'] as String;
