@@ -3,6 +3,45 @@ import 'package:flutter/gestures.dart';
 import 'dart:js_interop';
 import 'dart:convert';
 
+// Localization
+enum AppLanguage { ja, en }
+
+class L {
+  static AppLanguage current = AppLanguage.ja;
+
+  static final Map<String, Map<AppLanguage, String>> _strings = {
+    'settings': {AppLanguage.ja: '設定', AppLanguage.en: 'Settings'},
+    'lighting': {AppLanguage.ja: 'ライティング', AppLanguage.en: 'Lighting'},
+    'ambient': {AppLanguage.ja: '環境光', AppLanguage.en: 'Ambient'},
+    'direct': {AppLanguage.ja: '直接光', AppLanguage.en: 'Direct'},
+    'display': {AppLanguage.ja: '表示', AppLanguage.en: 'Display'},
+    'grid': {AppLanguage.ja: 'グリッド', AppLanguage.en: 'Grid'},
+    'shadow': {AppLanguage.ja: '影', AppLanguage.en: 'Shadow'},
+    'background': {AppLanguage.ja: '背景色', AppLanguage.en: 'Background'},
+    'language': {AppLanguage.ja: '言語', AppLanguage.en: 'Language'},
+    'openVrmFile': {AppLanguage.ja: 'VRMファイルを開く', AppLanguage.en: 'Open VRM File'},
+    'loadAnimation': {AppLanguage.ja: 'アニメーション読込 (.vrma)', AppLanguage.en: 'Load Animation (.vrma)'},
+    'stopAnimation': {AppLanguage.ja: 'アニメーション停止', AppLanguage.en: 'Stop Animation'},
+    'vrmInfo': {AppLanguage.ja: 'VRM情報', AppLanguage.en: 'VRM Info'},
+    'noVrmLoaded': {AppLanguage.ja: 'VRMが読み込まれていません。\nファイルをドラッグ＆ドロップしてください。', AppLanguage.en: 'No VRM loaded.\nDrag & drop a file.'},
+    'pleaseLoadVrmFirst': {AppLanguage.ja: '先にVRMを読み込んでください。', AppLanguage.en: 'Please load a VRM first.'},
+    'name': {AppLanguage.ja: '名前', AppLanguage.en: 'Name'},
+    'author': {AppLanguage.ja: '作者', AppLanguage.en: 'Author'},
+    'vertices': {AppLanguage.ja: '頂点数', AppLanguage.en: 'Vertices'},
+    'triangles': {AppLanguage.ja: 'ポリゴン数', AppLanguage.en: 'Triangles'},
+    'meshes': {AppLanguage.ja: 'メッシュ数', AppLanguage.en: 'Meshes'},
+    'bones': {AppLanguage.ja: 'ボーン数', AppLanguage.en: 'Bones'},
+    'materials': {AppLanguage.ja: 'マテリアル数', AppLanguage.en: 'Materials'},
+    'textures': {AppLanguage.ja: 'テクスチャ数', AppLanguage.en: 'Textures'},
+    'meshDetails': {AppLanguage.ja: 'メッシュ詳細', AppLanguage.en: 'Mesh Details'},
+    'expressions': {AppLanguage.ja: '表情', AppLanguage.en: 'Expressions'},
+    'noExpressions': {AppLanguage.ja: '表情がありません', AppLanguage.en: 'No expressions available'},
+    'reset': {AppLanguage.ja: 'リセット', AppLanguage.en: 'Reset'},
+  };
+
+  static String get(String key) => _strings[key]?[current] ?? key;
+}
+
 // JavaScript interop
 @JS('openFilePicker')
 external void _openFilePicker();
@@ -181,7 +220,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   void _openAnimation() {
     if (_vrmInfo == null) {
       setState(() {
-        _errorMessage = 'Please load a VRM first.';
+        _errorMessage = L.get('pleaseLoadVrmFirst');
       });
       return;
     }
@@ -218,9 +257,9 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   color: Theme.of(context).colorScheme.inversePrimary,
-                  child: const Text(
-                    'Settings',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  child: Text(
+                    L.get('settings'),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
                 // Lighting controls
@@ -229,15 +268,15 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Lighting',
-                        style: TextStyle(
+                      Text(
+                        L.get('lighting'),
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text('Ambient', style: TextStyle(fontSize: 12)),
+                      Text(L.get('ambient'), style: const TextStyle(fontSize: 12)),
                       Row(
                         children: [
                           Expanded(
@@ -265,7 +304,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                           ),
                         ],
                       ),
-                      const Text('Direct', style: TextStyle(fontSize: 12)),
+                      Text(L.get('direct'), style: const TextStyle(fontSize: 12)),
                       Row(
                         children: [
                           Expanded(
@@ -294,9 +333,9 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      const Text(
-                        'Display',
-                        style: TextStyle(
+                      Text(
+                        L.get('display'),
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                         ),
@@ -305,7 +344,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Grid', style: TextStyle(fontSize: 12)),
+                          Text(L.get('grid'), style: const TextStyle(fontSize: 12)),
                           Switch(
                             value: _gridVisible,
                             onChanged: (value) {
@@ -320,7 +359,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Shadow', style: TextStyle(fontSize: 12)),
+                          Text(L.get('shadow'), style: const TextStyle(fontSize: 12)),
                           Switch(
                             value: _shadowVisible,
                             onChanged: (value) {
@@ -333,7 +372,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      const Text('Background', style: TextStyle(fontSize: 12)),
+                      Text(L.get('background'), style: const TextStyle(fontSize: 12)),
                       const SizedBox(height: 4),
                       Wrap(
                         spacing: 6,
@@ -345,6 +384,22 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                           _buildColorButton(const Color(0xFF90EE90)), // Light green
                           _buildColorButton(const Color(0xFFFFF9C4)), // Pastel yellow
                           _buildColorButton(const Color(0xFFFFCDD2)), // Pastel red
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        L.get('language'),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          _buildLanguageButton('JA', AppLanguage.ja),
+                          const SizedBox(width: 8),
+                          _buildLanguageButton('EN', AppLanguage.en),
                         ],
                       ),
                     ],
@@ -408,7 +463,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                           child: ElevatedButton.icon(
                             onPressed: _isLoading ? null : _openFile,
                             icon: const Icon(Icons.folder_open),
-                            label: const Text('Open VRM File'),
+                            label: Text(L.get('openVrmFile')),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -417,7 +472,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                           child: ElevatedButton.icon(
                             onPressed: _isLoadingAnimation ? null : _openAnimation,
                             icon: const Icon(Icons.animation),
-                            label: const Text('Load Animation (.vrma)'),
+                            label: Text(L.get('loadAnimation')),
                           ),
                         ),
                         if (_animationInfo != null) ...[
@@ -439,7 +494,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                                   IconButton(
                                     onPressed: _stopCurrentAnimation,
                                     icon: const Icon(Icons.stop),
-                                    tooltip: 'Stop Animation',
+                                    tooltip: L.get('stopAnimation'),
                                     iconSize: 20,
                                     padding: EdgeInsets.zero,
                                     constraints: const BoxConstraints(),
@@ -450,9 +505,9 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                           ),
                         ],
                         const SizedBox(height: 24),
-                        const Text(
-                          'VRM Info',
-                          style: TextStyle(
+                        Text(
+                          L.get('vrmInfo'),
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
@@ -468,7 +523,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                         else if (_vrmInfo != null)
                           _buildInfoTable()
                         else
-                          const Text('No VRM loaded.\nDrag & drop a file.'),
+                          Text(L.get('noVrmLoaded')),
                       ],
                     ),
                   ),
@@ -520,16 +575,16 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
           ),
           const SizedBox(height: 8),
         ],
-        _infoRow('Name', _vrmInfo!['name']),
-        _infoRow('Author', _vrmInfo!['author']),
+        _infoRow(L.get('name'), _vrmInfo!['name']),
+        _infoRow(L.get('author'), _vrmInfo!['author']),
         const Divider(),
-        _infoRow('Vertices', '${_vrmInfo!['vertexCount']}'),
-        _infoRow('Triangles', '${_vrmInfo!['triangleCount']}'),
-        _infoRow('Meshes', '${_vrmInfo!['meshCount']}'),
+        _infoRow(L.get('vertices'), '${_vrmInfo!['vertexCount']}'),
+        _infoRow(L.get('triangles'), '${_vrmInfo!['triangleCount']}'),
+        _infoRow(L.get('meshes'), '${_vrmInfo!['meshCount']}'),
         const Divider(),
-        _infoRow('Bones', '${_vrmInfo!['boneCount']}'),
-        _infoRow('Materials', '${_vrmInfo!['materialCount']}'),
-        _infoRow('Textures', '${_vrmInfo!['textureCount']}'),
+        _infoRow(L.get('bones'), '${_vrmInfo!['boneCount']}'),
+        _infoRow(L.get('materials'), '${_vrmInfo!['materialCount']}'),
+        _infoRow(L.get('textures'), '${_vrmInfo!['textureCount']}'),
         if (meshDetails != null && meshDetails.isNotEmpty) ...[
           const Divider(),
           _buildMeshDetails(meshDetails),
@@ -543,14 +598,14 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   Widget _buildExpressionButtons() {
     final clips = _vrmInfo!['blendShapeClips'] as List<dynamic>?;
     if (clips == null || clips.isEmpty) {
-      return const Text(
-        'No expressions available',
-        style: TextStyle(color: Colors.grey, fontSize: 12),
+      return Text(
+        L.get('noExpressions'),
+        style: const TextStyle(color: Colors.grey, fontSize: 12),
       );
     }
 
     return ExpansionTile(
-      title: Text('Expressions (${clips.length})'),
+      title: Text('${L.get('expressions')} (${clips.length})'),
       tilePadding: EdgeInsets.zero,
       shape: const Border(),
       collapsedShape: const Border(),
@@ -573,7 +628,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   minimumSize: Size.zero,
                 ),
-                child: const Text('Reset', style: TextStyle(fontSize: 11)),
+                child: Text(L.get('reset'), style: const TextStyle(fontSize: 11)),
               ),
               // Expression buttons
               ...clips.map((clip) {
@@ -688,7 +743,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
     return ExpansionTile(
       title: Row(
         children: [
-          Text('Mesh Details (${meshDetails.length})'),
+          Text('${L.get('meshDetails')} (${meshDetails.length})'),
           const Spacer(),
           _buildSortButton('A', 'name'),
           const SizedBox(width: 4),
@@ -776,6 +831,34 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
           ),
         );
       }),
+    );
+  }
+
+  Widget _buildLanguageButton(String label, AppLanguage language) {
+    final isSelected = L.current == language;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          L.current = language;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? Theme.of(context).colorScheme.primary
+              : Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            color: isSelected ? Colors.white : Colors.black87,
+          ),
+        ),
+      ),
     );
   }
 
