@@ -31,8 +31,31 @@
 
   <title>vrm_viewer</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    #three-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+    }
+  </style>
 </head>
 <body>
+  <canvas id="three-canvas"></canvas>
+
+  <!-- Three.js & three-vrm (ES Modules) -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+        "@pixiv/three-vrm": "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3/lib/three-vrm.module.min.js"
+      }
+    }
+  </script>
+  <script type="module" src="three_app.js"></script>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
