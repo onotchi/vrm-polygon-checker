@@ -471,7 +471,6 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
     return ExpansionTile(
       title: Text('Expressions (${clips.length})'),
       tilePadding: EdgeInsets.zero,
-      initiallyExpanded: true,
       shape: const Border(),
       collapsedShape: const Border(),
       children: [
