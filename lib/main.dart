@@ -36,6 +36,13 @@ external set _onVRMLoaded(JSFunction? callback);
 @JS('onVRMALoaded')
 external set _onVRMALoaded(JSFunction? callback);
 
+// Callback setter for file picker cancelled events
+@JS('onVRMLoadCancelled')
+external set _onVRMLoadCancelled(JSFunction? callback);
+
+@JS('onVRMALoadCancelled')
+external set _onVRMALoadCancelled(JSFunction? callback);
+
 void main() {
   runApp(const MyApp());
 }
@@ -78,12 +85,16 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
     // Set up callback for file picker and drag & drop
     _onVRMLoaded = _handleVRMLoaded.toJS;
     _onVRMALoaded = _handleVRMALoaded.toJS;
+    _onVRMLoadCancelled = _handleVRMLoadCancelled.toJS;
+    _onVRMALoadCancelled = _handleVRMALoadCancelled.toJS;
   }
 
   @override
   void dispose() {
     _onVRMLoaded = null;
     _onVRMALoaded = null;
+    _onVRMLoadCancelled = null;
+    _onVRMALoadCancelled = null;
     super.dispose();
   }
 
@@ -109,6 +120,18 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
       } else {
         _errorMessage = result['error'];
       }
+    });
+  }
+
+  void _handleVRMLoadCancelled() {
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  void _handleVRMALoadCancelled() {
+    setState(() {
+      _isLoadingAnimation = false;
     });
   }
 

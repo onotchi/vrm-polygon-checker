@@ -130,6 +130,12 @@ window.openFilePicker = function() {
       }
     }
   };
+  // Handle cancel
+  input.oncancel = () => {
+    if (window.onVRMLoadCancelled) {
+      window.onVRMLoadCancelled();
+    }
+  };
   input.click();
 };
 
@@ -374,6 +380,12 @@ window.openVRMAPicker = function() {
       if (window.onVRMALoaded) {
         window.onVRMALoaded(result);
       }
+    }
+  };
+  // Handle cancel
+  input.oncancel = () => {
+    if (window.onVRMALoadCancelled) {
+      window.onVRMALoadCancelled();
     }
   };
   input.click();
