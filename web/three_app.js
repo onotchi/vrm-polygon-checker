@@ -544,63 +544,9 @@ window.setBackgroundColor = function(r, g, b) {
   return JSON.stringify({ success: true, r: r, g: g, b: b });
 };
 
-// Mesh highlight state
-let highlightedMesh = null;
-let originalMaterials = new Map();
-
 // Wireframe state
 let wireframeMesh = null;
 let wireframeOriginalMaterials = new Map();
-
-// Highlight a specific mesh by name
-window.highlightMesh = function(meshName) {
-  // Clear previous highlight
-  window.clearMeshHighlight();
-
-  if (!currentVRM) {
-    return JSON.stringify({ error: 'No VRM loaded.' });
-  }
-
-  // Find the mesh
-  currentVRM.scene.traverse((object) => {
-    if (object.isMesh && object.name === meshName) {
-      highlightedMesh = object;
-
-      // Store original materials and replace with cloned highlighted materials
-      if (Array.isArray(object.material)) {
-        originalMaterials.set(object, object.material);
-        object.material = object.material.map(m => {
-          const cloned = m.clone();
-          cloned.emissive = new THREE.Color(0x4488ff);
-          cloned.emissiveIntensity = 0.3;
-          return cloned;
-        });
-      } else {
-        originalMaterials.set(object, object.material);
-        const cloned = object.material.clone();
-        cloned.emissive = new THREE.Color(0x4488ff);
-        cloned.emissiveIntensity = 0.3;
-        object.material = cloned;
-      }
-    }
-  });
-
-  if (highlightedMesh) {
-    return JSON.stringify({ success: true, mesh: meshName });
-  }
-  return JSON.stringify({ error: 'Mesh not found: ' + meshName });
-};
-
-// Clear mesh highlight
-window.clearMeshHighlight = function() {
-  if (highlightedMesh && originalMaterials.has(highlightedMesh)) {
-    // Restore original materials
-    highlightedMesh.material = originalMaterials.get(highlightedMesh);
-    originalMaterials.delete(highlightedMesh);
-    highlightedMesh = null;
-  }
-  return JSON.stringify({ success: true });
-};
 
 // Set mesh visibility
 window.setMeshVisibility = function(meshName, visible) {

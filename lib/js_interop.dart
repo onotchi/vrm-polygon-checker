@@ -36,12 +36,6 @@ external void onWheel(JSNumber deltaY);
 external void setLightIntensity(JSNumber ambient, JSNumber directional);
 
 // Mesh
-@JS('highlightMesh')
-external JSString highlightMesh(JSString meshName);
-
-@JS('clearMeshHighlight')
-external JSString clearMeshHighlight();
-
 @JS('setMeshVisibility')
 external JSString setMeshVisibility(JSString meshName, JSBoolean visible);
 

@@ -50,7 +50,6 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   String? _activeExpression;
 
   // Mesh state
-  String? _selectedMesh;
   final Set<String> _hiddenMeshes = {};
   String? _focusedMesh;
   String? _wireframeMesh;
@@ -90,7 +89,6 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
         _vrmInfo = result;
         _errorMessage = null;
         _activeExpression = null;
-        _selectedMesh = null;
         _hiddenMeshes.clear();
         _focusedMesh = null;
         _wireframeMesh = null;
@@ -244,7 +242,6 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
             isLoadingAnimation: _isLoadingAnimation,
             errorMessage: _errorMessage,
             activeExpression: _activeExpression,
-            selectedMesh: _selectedMesh,
             focusedMesh: _focusedMesh,
             wireframeMesh: _wireframeMesh,
             hiddenMeshes: _hiddenMeshes,
@@ -254,7 +251,6 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
             onOpenAnimation: _openAnimation,
             onStopAnimation: _stopAnimation,
             onExpressionChanged: (value) => setState(() => _activeExpression = value),
-            onMeshSelected: (value) => setState(() => _selectedMesh = value),
             onMeshVisibilityChanged: _handleMeshVisibilityChanged,
             onMeshFocusChanged: _handleMeshFocusChanged,
             onMeshWireframeChanged: _handleMeshWireframeChanged,

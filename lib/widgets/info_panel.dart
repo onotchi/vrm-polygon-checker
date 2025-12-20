@@ -10,7 +10,6 @@ class InfoPanel extends StatelessWidget {
   final bool isLoadingAnimation;
   final String? errorMessage;
   final String? activeExpression;
-  final String? selectedMesh;
   final String? focusedMesh;
   final String? wireframeMesh;
   final Set<String> hiddenMeshes;
@@ -20,7 +19,6 @@ class InfoPanel extends StatelessWidget {
   final VoidCallback onOpenAnimation;
   final VoidCallback onStopAnimation;
   final ValueChanged<String?> onExpressionChanged;
-  final ValueChanged<String?> onMeshSelected;
   final ValueChanged<String> onMeshVisibilityChanged;
   final ValueChanged<String> onMeshFocusChanged;
   final ValueChanged<String> onMeshWireframeChanged;
@@ -34,7 +32,6 @@ class InfoPanel extends StatelessWidget {
     required this.isLoadingAnimation,
     required this.errorMessage,
     required this.activeExpression,
-    required this.selectedMesh,
     required this.focusedMesh,
     required this.wireframeMesh,
     required this.hiddenMeshes,
@@ -44,7 +41,6 @@ class InfoPanel extends StatelessWidget {
     required this.onOpenAnimation,
     required this.onStopAnimation,
     required this.onExpressionChanged,
-    required this.onMeshSelected,
     required this.onMeshVisibilityChanged,
     required this.onMeshFocusChanged,
     required this.onMeshWireframeChanged,
@@ -382,27 +378,10 @@ class InfoPanel extends StatelessWidget {
         final tris = m['triangles'] as int;
         final mats = m['materials'] as int;
         final isLast = index == sortedDetails.length - 1;
-        final isSelected = selectedMesh == name;
         final isHidden = hiddenMeshes.contains(name);
-        return InkWell(
-          onTap: () {
-            if (isSelected) {
-              js.clearMeshHighlight();
-              onMeshSelected(null);
-            } else {
-              js.highlightMesh(name.toJS);
-              onMeshSelected(name);
-            }
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5)
-                  : null,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Row(
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+          child: Row(
               children: [
                 // Visibility toggle
                 GestureDetector(
@@ -454,7 +433,6 @@ class InfoPanel extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 13,
-                      fontWeight: isSelected ? FontWeight.bold : null,
                       color: isHidden ? Colors.grey : null,
                     ),
                   ),
@@ -465,7 +443,6 @@ class InfoPanel extends StatelessWidget {
                 ),
               ],
             ),
-          ),
         );
       }),
     );
