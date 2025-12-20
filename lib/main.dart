@@ -80,7 +80,7 @@ class MyApp extends StatelessWidget {
       title: 'VRM Polygon Checker',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
       ),
       home: const VRMViewerPage(),
     );
