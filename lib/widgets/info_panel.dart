@@ -4,6 +4,7 @@ import '../localization.dart';
 import '../js_interop.dart' as js;
 
 class InfoPanel extends StatelessWidget {
+  final double width;
   final Map<String, dynamic>? vrmInfo;
   final Map<String, dynamic>? animationInfo;
   final bool isLoading;
@@ -23,9 +24,11 @@ class InfoPanel extends StatelessWidget {
   final ValueChanged<String> onMeshFocusChanged;
   final ValueChanged<String> onMeshWireframeChanged;
   final ValueChanged<String> onSortChanged;
+  final ValueChanged<double> onWidthChanged;
 
   const InfoPanel({
     super.key,
+    required this.width,
     required this.vrmInfo,
     required this.animationInfo,
     required this.isLoading,
@@ -45,46 +48,67 @@ class InfoPanel extends StatelessWidget {
     required this.onMeshFocusChanged,
     required this.onMeshWireframeChanged,
     required this.onSortChanged,
+    required this.onWidthChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 320,
-      color: Theme.of(context).colorScheme.surface,
-      child: Column(
-        children: [
-          // Header
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            color: Theme.of(context).colorScheme.inversePrimary,
-            child: const Text(
-              'VRM Polygon Checker',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+    return Row(
+      children: [
+        // Resize handle
+        MouseRegion(
+          cursor: SystemMouseCursors.resizeColumn,
+          child: GestureDetector(
+            onHorizontalDragUpdate: (details) {
+              final newWidth = width - details.delta.dx;
+              onWidthChanged(newWidth.clamp(250, 600));
+            },
+            child: Container(
+              width: 4,
+              color: Colors.grey.shade300,
             ),
           ),
-          // Content
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildButtons(context),
-                  if (animationInfo != null) _buildAnimationCard(context),
-                  const SizedBox(height: 24),
-                  _buildVrmInfoSection(context),
-                ],
-              ),
+        ),
+        // Panel content
+        Expanded(
+          child: Container(
+            color: Theme.of(context).colorScheme.surface,
+            child: Column(
+              children: [
+                // Header
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                  child: const Text(
+                    'VRM Polygon Checker',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                // Content
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildButtons(context),
+                        if (animationInfo != null) _buildAnimationCard(context),
+                        const SizedBox(height: 24),
+                        _buildVrmInfoSection(context),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

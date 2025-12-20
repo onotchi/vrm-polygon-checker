@@ -63,6 +63,9 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   bool _shadowVisible = true;
   Color _backgroundColor = const Color(0xFFFFFFFF);
 
+  // Panel width
+  double _infoPanelWidth = 320;
+
   @override
   void initState() {
     super.initState();
@@ -235,26 +238,31 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
             onLanguageChanged: () => setState(() {}),
           ),
           const CanvasArea(),
-          InfoPanel(
-            vrmInfo: _vrmInfo,
-            animationInfo: _animationInfo,
-            isLoading: _isLoading,
-            isLoadingAnimation: _isLoadingAnimation,
-            errorMessage: _errorMessage,
-            activeExpression: _activeExpression,
-            focusedMesh: _focusedMesh,
-            wireframeMeshes: _wireframeMeshes,
-            hiddenMeshes: _hiddenMeshes,
-            meshSortKey: _meshSortKey,
-            meshSortAscending: _meshSortAscending,
-            onOpenFile: _openFile,
-            onOpenAnimation: _openAnimation,
-            onStopAnimation: _stopAnimation,
-            onExpressionChanged: (value) => setState(() => _activeExpression = value),
-            onMeshVisibilityChanged: _handleMeshVisibilityChanged,
-            onMeshFocusChanged: _handleMeshFocusChanged,
-            onMeshWireframeChanged: _handleMeshWireframeChanged,
-            onSortChanged: _toggleMeshSort,
+          SizedBox(
+            width: _infoPanelWidth,
+            child: InfoPanel(
+              width: _infoPanelWidth,
+              vrmInfo: _vrmInfo,
+              animationInfo: _animationInfo,
+              isLoading: _isLoading,
+              isLoadingAnimation: _isLoadingAnimation,
+              errorMessage: _errorMessage,
+              activeExpression: _activeExpression,
+              focusedMesh: _focusedMesh,
+              wireframeMeshes: _wireframeMeshes,
+              hiddenMeshes: _hiddenMeshes,
+              meshSortKey: _meshSortKey,
+              meshSortAscending: _meshSortAscending,
+              onOpenFile: _openFile,
+              onOpenAnimation: _openAnimation,
+              onStopAnimation: _stopAnimation,
+              onExpressionChanged: (value) => setState(() => _activeExpression = value),
+              onMeshVisibilityChanged: _handleMeshVisibilityChanged,
+              onMeshFocusChanged: _handleMeshFocusChanged,
+              onMeshWireframeChanged: _handleMeshWireframeChanged,
+              onSortChanged: _toggleMeshSort,
+              onWidthChanged: (value) => setState(() => _infoPanelWidth = value),
+            ),
           ),
         ],
       ),
