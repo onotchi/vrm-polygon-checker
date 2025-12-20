@@ -544,8 +544,7 @@ window.setBackgroundColor = function(r, g, b) {
   return JSON.stringify({ success: true, r: r, g: g, b: b });
 };
 
-// Wireframe state
-let wireframeMesh = null;
+// Wireframe state (supports multiple meshes)
 let wireframeOriginalMaterials = new Map();
 
 // Set mesh visibility
@@ -609,17 +608,20 @@ window.showAllMeshes = function() {
 
 // Show wireframe for a specific mesh (using material.wireframe for skeleton following)
 window.showWireframe = function(meshName) {
-  // Clear previous wireframe
-  window.clearWireframe();
-
   if (!currentVRM) {
     return JSON.stringify({ error: 'No VRM loaded.' });
   }
 
+  let found = false;
+
   // Find the mesh
   currentVRM.scene.traverse((object) => {
     if (object.isMesh && object.name === meshName) {
-      wireframeMesh = object;
+      // Skip if already wireframe
+      if (wireframeOriginalMaterials.has(object)) {
+        found = true;
+        return;
+      }
 
       // Store original materials and replace with cloned wireframe materials
       if (Array.isArray(object.material)) {
@@ -635,24 +637,37 @@ window.showWireframe = function(meshName) {
         cloned.wireframe = true;
         object.material = cloned;
       }
+      found = true;
     }
   });
 
-  if (wireframeMesh) {
+  if (found) {
     return JSON.stringify({ success: true, mesh: meshName });
   }
   return JSON.stringify({ error: 'Mesh not found: ' + meshName });
 };
 
-// Clear wireframe
-window.clearWireframe = function() {
-  if (wireframeMesh && wireframeOriginalMaterials.has(wireframeMesh)) {
-    // Restore original materials
-    wireframeMesh.material = wireframeOriginalMaterials.get(wireframeMesh);
-    wireframeOriginalMaterials.delete(wireframeMesh);
-    wireframeMesh = null;
+// Clear wireframe for a specific mesh
+window.clearWireframe = function(meshName) {
+  if (!currentVRM) {
+    return JSON.stringify({ error: 'No VRM loaded.' });
   }
-  return JSON.stringify({ success: true });
+
+  let found = false;
+
+  currentVRM.scene.traverse((object) => {
+    if (object.isMesh && object.name === meshName && wireframeOriginalMaterials.has(object)) {
+      // Restore original materials
+      object.material = wireframeOriginalMaterials.get(object);
+      wireframeOriginalMaterials.delete(object);
+      found = true;
+    }
+  });
+
+  if (found) {
+    return JSON.stringify({ success: true, mesh: meshName });
+  }
+  return JSON.stringify({ error: 'Mesh not found or not wireframed: ' + meshName });
 };
 
 console.log('Three.js app initialized!');

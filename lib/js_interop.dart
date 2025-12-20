@@ -49,7 +49,7 @@ external JSString showAllMeshes();
 external JSString showWireframe(JSString meshName);
 
 @JS('clearWireframe')
-external JSString clearWireframe();
+external JSString clearWireframe(JSString meshName);
 
 // Display settings
 @JS('setGridVisible')

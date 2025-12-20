@@ -11,7 +11,7 @@ class InfoPanel extends StatelessWidget {
   final String? errorMessage;
   final String? activeExpression;
   final String? focusedMesh;
-  final String? wireframeMesh;
+  final Set<String> wireframeMeshes;
   final Set<String> hiddenMeshes;
   final String meshSortKey;
   final bool meshSortAscending;
@@ -33,7 +33,7 @@ class InfoPanel extends StatelessWidget {
     required this.errorMessage,
     required this.activeExpression,
     required this.focusedMesh,
-    required this.wireframeMesh,
+    required this.wireframeMeshes,
     required this.hiddenMeshes,
     required this.meshSortKey,
     required this.meshSortAscending,
@@ -417,7 +417,7 @@ class InfoPanel extends StatelessWidget {
                     child: Icon(
                       Icons.grid_on,
                       size: 16,
-                      color: wireframeMesh == name
+                      color: wireframeMeshes.contains(name)
                           ? Colors.green
                           : Colors.grey.shade600,
                     ),

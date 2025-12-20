@@ -52,7 +52,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   // Mesh state
   final Set<String> _hiddenMeshes = {};
   String? _focusedMesh;
-  String? _wireframeMesh;
+  final Set<String> _wireframeMeshes = {};
   String _meshSortKey = 'none';
   bool _meshSortAscending = true;
 
@@ -91,7 +91,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
         _activeExpression = null;
         _hiddenMeshes.clear();
         _focusedMesh = null;
-        _wireframeMesh = null;
+        _wireframeMeshes.clear();
       } else {
         _errorMessage = result['error'];
       }
@@ -205,12 +205,12 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
 
   void _handleMeshWireframeChanged(String name) {
     setState(() {
-      if (_wireframeMesh == name) {
-        js.clearWireframe();
-        _wireframeMesh = null;
+      if (_wireframeMeshes.contains(name)) {
+        js.clearWireframe(name.toJS);
+        _wireframeMeshes.remove(name);
       } else {
         js.showWireframe(name.toJS);
-        _wireframeMesh = name;
+        _wireframeMeshes.add(name);
       }
     });
   }
@@ -243,7 +243,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
             errorMessage: _errorMessage,
             activeExpression: _activeExpression,
             focusedMesh: _focusedMesh,
-            wireframeMesh: _wireframeMesh,
+            wireframeMeshes: _wireframeMeshes,
             hiddenMeshes: _hiddenMeshes,
             meshSortKey: _meshSortKey,
             meshSortAscending: _meshSortAscending,
