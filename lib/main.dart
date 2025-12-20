@@ -43,6 +43,12 @@ external JSString _clearMeshHighlight();
 @JS('setMeshVisibility')
 external JSString _setMeshVisibility(JSString meshName, JSBoolean visible);
 
+@JS('setGridVisible')
+external JSString _setGridVisible(JSBoolean visible);
+
+@JS('setShadowVisible')
+external JSString _setShadowVisible(JSBoolean visible);
+
 // Callback setter for VRM loaded event
 @JS('onVRMLoaded')
 external set _onVRMLoaded(JSFunction? callback);
@@ -98,6 +104,8 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   final Set<String> _hiddenMeshes = {};
   String _meshSortKey = 'none'; // 'none', 'name', 'triangles'
   bool _meshSortAscending = true;
+  bool _gridVisible = true;
+  bool _shadowVisible = true;
 
   @override
   void initState() {
@@ -278,6 +286,45 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                               _directionalIntensity.toStringAsFixed(1),
                               style: const TextStyle(fontSize: 12),
                             ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Display',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Grid', style: TextStyle(fontSize: 12)),
+                          Switch(
+                            value: _gridVisible,
+                            onChanged: (value) {
+                              setState(() {
+                                _gridVisible = value;
+                              });
+                              _setGridVisible(value.toJS);
+                            },
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Shadow', style: TextStyle(fontSize: 12)),
+                          Switch(
+                            value: _shadowVisible,
+                            onChanged: (value) {
+                              setState(() {
+                                _shadowVisible = value;
+                              });
+                              _setShadowVisible(value.toJS);
+                            },
                           ),
                         ],
                       ),

@@ -523,6 +523,17 @@ window.getLightIntensity = function() {
   });
 };
 
+// Grid and shadow visibility controls
+window.setGridVisible = function(visible) {
+  gridHelper.visible = visible;
+  return JSON.stringify({ success: true, visible: visible });
+};
+
+window.setShadowVisible = function(visible) {
+  shadowMesh.visible = visible && currentVRM !== null;
+  return JSON.stringify({ success: true, visible: visible });
+};
+
 // Mesh highlight state
 let highlightedMesh = null;
 let originalMaterials = new Map();
