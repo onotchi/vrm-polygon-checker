@@ -1,16 +1,27 @@
-# vrm_viewer
+# VRM Polygon Checker
 
-A new Flutter project.
+VRMモデルのポリゴン数やメッシュ情報を確認できるWebアプリです。
+<!-- TODO: デモ動画のリンクを追加 -->
+<!-- [デモ動画](https://x.com/...) -->
 
-## Getting Started
+## 機能
 
-This project is a starting point for a Flutter application.
+- **VRM読み込み** - ファイル選択またはドラッグ＆ドロップでVRMファイル（0.x / 1.0）を読み込み
+- **メッシュ解析** - メッシュごとのポリゴン数、頂点数、マテリアル数を表示
+- **メッシュ操作**
+  - 個別メッシュの表示/非表示
+  - ワイヤーフレーム表示
+  - フォーカスモード（単一メッシュのみ表示）※個別メッシュ名を長押し
+  - ポリゴン数/名前でソート
+- **表情プレビュー** - VRMの表情（BlendShape/Expression）を確認
+- **アニメーション再生** - VRMAファイルの読み込み・再生
+- **表示設定**
+  - ライティング調整（環境光/直接光）
+  - グリッド・影の表示切替
+  - 背景色変更
+- **多言語対応** - 日本語 / 英語
 
-A few resources to get you started if this is your first Flutter project:
+## 技術スタック
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- Flutter Web
+- Three.js + @pixiv/three-vrm
