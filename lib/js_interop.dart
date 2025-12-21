@@ -51,6 +51,9 @@ external JSString showWireframe(JSString meshName);
 @JS('clearWireframe')
 external JSString clearWireframe(JSString meshName);
 
+@JS('highlightMesh')
+external JSString highlightMesh(JSString meshName);
+
 // Display settings
 @JS('setGridVisible')
 external JSString setGridVisible(JSBoolean visible);

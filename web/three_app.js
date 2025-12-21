@@ -687,6 +687,64 @@ window.showWireframe = function(meshName) {
   return JSON.stringify({ error: 'Mesh not found: ' + meshName });
 };
 
+// Highlight mesh with emissive flash
+window.highlightMesh = function(meshName) {
+  if (!currentVRM) {
+    return JSON.stringify({ error: 'No VRM loaded.' });
+  }
+
+  let found = false;
+
+  currentVRM.scene.traverse((object) => {
+    if (object.isMesh && object.name === meshName) {
+      found = true;
+
+      // Get materials array
+      const materials = Array.isArray(object.material) ? object.material : [object.material];
+
+      // Store original emissive colors
+      const originalEmissives = materials.map(m => m.emissive ? m.emissive.clone() : null);
+
+      // Set bright emissive
+      materials.forEach(m => {
+        if (m.emissive) {
+          m.emissive.setRGB(0.5, 0.8, 1.0); // Light blue glow
+        }
+      });
+
+      // Fade back to original over 300ms
+      const startTime = performance.now();
+      const duration = 300;
+
+      function fadeEmissive() {
+        const elapsed = performance.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        materials.forEach((m, i) => {
+          if (m.emissive && originalEmissives[i]) {
+            m.emissive.lerpColors(
+              new THREE.Color(0.5, 0.8, 1.0),
+              originalEmissives[i],
+              progress
+            );
+          }
+        });
+
+        if (progress < 1) {
+          requestAnimationFrame(fadeEmissive);
+        }
+      }
+
+      requestAnimationFrame(fadeEmissive);
+    }
+  });
+
+  if (found) {
+    return JSON.stringify({ success: true, mesh: meshName });
+  }
+  return JSON.stringify({ error: 'Mesh not found: ' + meshName });
+};
+
 // Clear wireframe for a specific mesh
 window.clearWireframe = function(meshName) {
   if (!currentVRM) {

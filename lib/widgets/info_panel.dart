@@ -524,6 +524,7 @@ class InfoPanel extends StatelessWidget {
           return Material(
             color: Colors.transparent,
             child: InkWell(
+              onTap: () => js.highlightMesh(name.toJS),
               onLongPress: () => onMeshFocusChanged(name),
               hoverColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(4),
