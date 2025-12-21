@@ -520,21 +520,29 @@ class InfoPanel extends StatelessWidget {
           final mats = m['materials'] as int;
           final isLast = index == sortedDetails.length - 1;
           final isHidden = hiddenMeshes.contains(name);
+          final isFocused = focusedMesh == name;
           return Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () {},
+              onLongPress: () => onMeshFocusChanged(name),
               hoverColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(4),
-              child: Padding(
+              child: Container(
+                decoration: isFocused
+                    ? BoxDecoration(
+                        color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(4),
+                      )
+                    : null,
                 padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
                 child: Row(
                   children: [
                     // Visibility toggle
                     GestureDetector(
+                      behavior: HitTestBehavior.opaque,
                       onTap: () => onMeshVisibilityChanged(name),
                       child: Padding(
-                        padding: const EdgeInsets.only(right: 2),
+                        padding: const EdgeInsets.all(4),
                         child: Icon(
                           isHidden ? Icons.visibility_off : Icons.visibility,
                           size: 16,
@@ -542,25 +550,12 @@ class InfoPanel extends StatelessWidget {
                         ),
                       ),
                     ),
-                    // Focus toggle
-                    GestureDetector(
-                      onTap: () => onMeshFocusChanged(name),
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 2),
-                        child: Icon(
-                          Icons.search,
-                          size: 16,
-                          color: focusedMesh == name
-                              ? Theme.of(context).colorScheme.primary
-                              : Colors.grey.shade600,
-                        ),
-                      ),
-                    ),
                     // Wireframe toggle
                     GestureDetector(
+                      behavior: HitTestBehavior.opaque,
                       onTap: () => onMeshWireframeChanged(name),
                       child: Padding(
-                        padding: const EdgeInsets.only(right: 4),
+                        padding: const EdgeInsets.all(4),
                         child: Icon(
                           Icons.grid_on,
                           size: 16,
