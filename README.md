@@ -1,7 +1,8 @@
 # VRM Polygon Checker
 
 VRMモデルのポリゴン数やメッシュ情報を確認できるWebアプリです。
-[デモ動画](https://x.com/onotchi_/status/2002633560503824855)
+
+**[アプリを使う](https://onotchi.github.io/vrm-polygon-checker/)** | [デモ動画](https://x.com/onotchi_/status/2002633560503824855)
 
 ## 機能
 
