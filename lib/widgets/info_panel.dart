@@ -249,6 +249,19 @@ class InfoPanel extends StatelessWidget {
   }
 
   Widget _buildBasicInfo(BuildContext context) {
+    // Calculate visible triangles from mesh details
+    final meshDetails = vrmInfo!['meshDetails'] as List<dynamic>?;
+    int visibleTriangles = 0;
+    if (meshDetails != null) {
+      for (final mesh in meshDetails) {
+        final name = mesh['name'] as String;
+        if (!hiddenMeshes.contains(name)) {
+          visibleTriangles += mesh['triangles'] as int;
+        }
+      }
+    }
+    final totalTriangles = vrmInfo!['triangleCount'] as int;
+
     return ExpansionTile(
       title: Text(Localization.get('basicInfo'), style: const TextStyle(fontWeight: FontWeight.bold)),
       tilePadding: EdgeInsets.zero,
@@ -260,7 +273,8 @@ class InfoPanel extends StatelessWidget {
         _infoRow(Localization.get('author'), vrmInfo!['author']),
         const Divider(),
         _infoRow(Localization.get('vertices'), '${vrmInfo!['vertexCount']}'),
-        _infoRow(Localization.get('triangles'), '${vrmInfo!['triangleCount']}'),
+        _infoRow(Localization.get('triangles'), '$totalTriangles'),
+        _infoRow(Localization.get('trianglesVisible'), '$visibleTriangles'),
         _infoRow(Localization.get('meshes'), '${vrmInfo!['meshCount']}'),
         const Divider(),
         _infoRow(Localization.get('bones'), '${vrmInfo!['boneCount']}'),

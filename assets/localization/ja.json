@@ -34,5 +34,6 @@
   "sortByName": "名前ソート",
   "sortByPolygons": "ポリゴン数ソート",
   "sortReset": "ソート無し",
-  "meshFocusHint": "※メッシュ名長押しで単体表示"
+  "meshFocusHint": "※メッシュ名長押しで単体表示",
+  "trianglesVisible": "ポリゴン数(表示中)"
 }
