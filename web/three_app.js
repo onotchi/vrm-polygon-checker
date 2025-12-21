@@ -82,6 +82,18 @@ shadowMesh.position.y = 0.001;
 shadowMesh.visible = false; // Hidden until VRM is loaded
 scene.add(shadowMesh);
 
+// VRM version detection helper
+// Returns: { isVRM1: boolean, versionString: string }
+function getVRMVersion(vrm) {
+  const metaVersion = vrm?.meta?.metaVersion;
+  if (metaVersion === '1') {
+    return { isVRM1: true, versionString: '1.0' };
+  } else if (metaVersion === '0') {
+    return { isVRM1: false, versionString: '0.x' };
+  }
+  return { isVRM1: false, versionString: 'Unknown' };
+}
+
 // VRM loader setup
 const loader = new GLTFLoader();
 loader.register((parser) => new VRMLoaderPlugin(parser));
@@ -150,8 +162,11 @@ function setupVRM(gltf, fileName = null) {
   // Show shadow when VRM is loaded
   shadowMesh.visible = true;
 
-  // Rotate VRM to face camera (VRM default is facing -Z, we want +Z)
-  vrm.scene.rotation.y = Math.PI;
+  // Rotate VRM to face camera
+  // VRM 0.x: default facing -Z, need 180 degree rotation
+  // VRM 1.0: default facing +Z (glTF standard), no rotation needed
+  const vrmVersion = getVRMVersion(vrm);
+  vrm.scene.rotation.y = vrmVersion.isVRM1 ? 0 : Math.PI;
 
   // Reapply animation if one was loaded
   if (currentVRMAnimation) {
@@ -249,19 +264,13 @@ function getVRMInfo(vrm, gltf, fileName = null) {
   const name = meta?.name || meta?.title || 'Unknown';
   const author = meta?.authors?.[0] || meta?.author || 'Unknown';
 
-  // Detect VRM version (0.x or 1.0)
-  // metaVersion: "0" = VRM 0.x, "1" = VRM 1.0
-  let vrmVersion = 'Unknown';
-  if (meta?.metaVersion === '0') {
-    vrmVersion = '0.x';
-  } else if (meta?.metaVersion === '1') {
-    vrmVersion = '1.0';
-  }
+  // Get VRM version using helper
+  const vrmVersionInfo = getVRMVersion(vrm);
 
   return {
     // File info
     fileName: fileName || null,
-    vrmVersion: vrmVersion,
+    vrmVersion: vrmVersionInfo.versionString,
 
     // VRM Meta info
     name: name,
