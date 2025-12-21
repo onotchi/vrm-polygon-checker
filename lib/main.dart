@@ -96,6 +96,8 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
         _hiddenMeshes.clear();
         _focusedMesh = null;
         _wireframeMeshes.clear();
+        _meshSortKey = 'none';
+        _meshSortAscending = true;
       } else {
         _errorMessage = result['error'];
       }
