@@ -28,6 +28,7 @@ class InfoPanel extends StatelessWidget {
   final VoidCallback onWireframeAllMeshes;
   final VoidCallback onClearAllWireframes;
   final ValueChanged<String> onSortChanged;
+  final VoidCallback onSortReset;
   final ValueChanged<double> onWidthChanged;
 
   const InfoPanel({
@@ -56,6 +57,7 @@ class InfoPanel extends StatelessWidget {
     required this.onWireframeAllMeshes,
     required this.onClearAllWireframes,
     required this.onSortChanged,
+    required this.onSortReset,
     required this.onWidthChanged,
   });
 
@@ -368,34 +370,61 @@ class InfoPanel extends StatelessWidget {
     return list;
   }
 
-  Widget _buildSortButton(BuildContext context, String label, String key) {
+  Widget _buildSortButton(BuildContext context, String key) {
     final isActive = meshSortKey == key;
-    return GestureDetector(
-      onTap: () => onSortChanged(key),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        decoration: BoxDecoration(
-          color: isActive
-              ? Theme.of(context).colorScheme.primaryContainer
-              : Colors.grey.shade200,
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
-            if (isActive)
+    final tooltipText = key == 'name'
+        ? Localization.get('sortByName')
+        : Localization.get('sortByPolygons');
+    final icon = key == 'name' ? Icons.abc : Icons.now_widgets_outlined;
+
+    return Tooltip(
+      message: tooltipText,
+      child: GestureDetector(
+        onTap: () => onSortChanged(key),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: isActive
+                ? Theme.of(context).colorScheme.primaryContainer
+                : Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
               Icon(
-                meshSortAscending ? Icons.arrow_upward : Icons.arrow_downward,
-                size: 12,
+                icon,
+                size: 14,
+                color: isActive ? Theme.of(context).colorScheme.primary : Colors.grey.shade700,
               ),
-          ],
+              if (isActive)
+                Icon(
+                  meshSortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                  size: 12,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSortResetButton(BuildContext context) {
+    return Tooltip(
+      message: Localization.get('sortReset'),
+      child: GestureDetector(
+        onTap: onSortReset,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Icon(
+            Icons.refresh,
+            size: 14,
+            color: Colors.grey.shade700,
+          ),
         ),
       ),
     );
@@ -410,9 +439,11 @@ class InfoPanel extends StatelessWidget {
         children: [
           Text('${Localization.get('meshDetails')} (${meshDetails.length})', style: const TextStyle(fontWeight: FontWeight.bold)),
           const Spacer(),
-          _buildSortButton(context, 'A', 'name'),
+          _buildSortButton(context, 'triangles'),
           const SizedBox(width: 4),
-          _buildSortButton(context, '#', 'triangles'),
+          _buildSortButton(context, 'name'),
+          const SizedBox(width: 4),
+          _buildSortResetButton(context),
         ],
       ),
       tilePadding: EdgeInsets.zero,

@@ -30,5 +30,8 @@
   "showAll": "全表示",
   "hideAll": "全非表示",
   "wireframeOn": "全Wire",
-  "wireframeOff": "全Wire解除"
+  "wireframeOff": "全Wire解除",
+  "sortByName": "名前ソート",
+  "sortByPolygons": "ポリゴン数ソート",
+  "sortReset": "ソート無し"
 }

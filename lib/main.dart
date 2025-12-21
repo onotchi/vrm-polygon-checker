@@ -158,16 +158,19 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   void _toggleMeshSort(String key) {
     setState(() {
       if (_meshSortKey == key) {
-        if (_meshSortAscending) {
-          _meshSortAscending = false;
-        } else {
-          _meshSortKey = 'none';
-          _meshSortAscending = true;
-        }
+        // Toggle ascending/descending
+        _meshSortAscending = !_meshSortAscending;
       } else {
         _meshSortKey = key;
         _meshSortAscending = true;
       }
+    });
+  }
+
+  void _resetMeshSort() {
+    setState(() {
+      _meshSortKey = 'none';
+      _meshSortAscending = true;
     });
   }
 
@@ -331,6 +334,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
               onWireframeAllMeshes: _wireframeAllMeshes,
               onClearAllWireframes: _clearAllWireframes,
               onSortChanged: _toggleMeshSort,
+              onSortReset: _resetMeshSort,
               onWidthChanged: (value) => setState(() => _infoPanelWidth = value),
             ),
           ),

@@ -30,5 +30,8 @@
   "showAll": "Show All",
   "hideAll": "Hide All",
   "wireframeOn": "Wire All",
-  "wireframeOff": "Wire Off"
+  "wireframeOff": "Wire Off",
+  "sortByName": "Sort by Name",
+  "sortByPolygons": "Sort by Polygons",
+  "sortReset": "Reset Sort"
 }
