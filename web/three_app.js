@@ -699,20 +699,25 @@ window.highlightMesh = function(meshName) {
     if (object.isMesh && object.name === meshName) {
       found = true;
 
-      // Get materials array
-      const materials = Array.isArray(object.material) ? object.material : [object.material];
+      // Clone materials to avoid affecting other meshes sharing the same material
+      const originalMaterials = object.material;
+      const isArray = Array.isArray(originalMaterials);
+      const materialsToClone = isArray ? originalMaterials : [originalMaterials];
 
-      // Store original emissive colors
-      const originalEmissives = materials.map(m => m.emissive ? m.emissive.clone() : null);
+      const clonedMaterials = materialsToClone.map(m => m.clone());
+      object.material = isArray ? clonedMaterials : clonedMaterials[0];
 
-      // Set bright emissive
-      materials.forEach(m => {
+      // Store original emissive colors from cloned materials
+      const originalEmissives = clonedMaterials.map(m => m.emissive ? m.emissive.clone() : null);
+
+      // Set bright emissive on cloned materials
+      clonedMaterials.forEach(m => {
         if (m.emissive) {
           m.emissive.setRGB(0.5, 0.8, 1.0); // Light blue glow
         }
       });
 
-      // Fade back to original over 300ms
+      // Fade back to original over 300ms, then restore original materials
       const startTime = performance.now();
       const duration = 300;
 
@@ -720,7 +725,7 @@ window.highlightMesh = function(meshName) {
         const elapsed = performance.now() - startTime;
         const progress = Math.min(elapsed / duration, 1);
 
-        materials.forEach((m, i) => {
+        clonedMaterials.forEach((m, i) => {
           if (m.emissive && originalEmissives[i]) {
             m.emissive.lerpColors(
               new THREE.Color(0.5, 0.8, 1.0),
@@ -732,6 +737,10 @@ window.highlightMesh = function(meshName) {
 
         if (progress < 1) {
           requestAnimationFrame(fadeEmissive);
+        } else {
+          // Animation complete - restore original materials and dispose clones
+          object.material = originalMaterials;
+          clonedMaterials.forEach(m => m.dispose());
         }
       }
 
