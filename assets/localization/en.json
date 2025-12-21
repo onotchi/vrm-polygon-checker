@@ -33,5 +33,6 @@
   "wireframeOff": "Wire Off",
   "sortByName": "Sort by Name",
   "sortByPolygons": "Sort by Polygons",
-  "sortReset": "Reset Sort"
+  "sortReset": "Reset Sort",
+  "meshFocusHint": "Long-press mesh name for solo view"
 }

@@ -33,5 +33,6 @@
   "wireframeOff": "全Wire解除",
   "sortByName": "名前ソート",
   "sortByPolygons": "ポリゴン数ソート",
-  "sortReset": "ソート無し"
+  "sortReset": "ソート無し",
+  "meshFocusHint": "※メッシュ名長押しで単体表示"
 }

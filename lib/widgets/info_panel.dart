@@ -590,6 +590,17 @@ class InfoPanel extends StatelessWidget {
             ),
           );
         }),
+        // Hint for long-press focus mode
+        Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text(
+            Localization.get('meshFocusHint'),
+            style: TextStyle(
+              fontSize: 10,
+              color: Colors.grey.shade500,
+            ),
+          ),
+        ),
       ],
     );
   }
