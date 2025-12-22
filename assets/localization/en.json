@@ -35,5 +35,6 @@
   "sortByPolygons": "Sort by Polygons",
   "sortReset": "Reset Sort",
   "meshFocusHint": "Long-press mesh name for solo view",
-  "trianglesVisible": "Triangles (visible)"
+  "trianglesVisible": "Triangles (visible)",
+  "antialias": "Antialias"
 }

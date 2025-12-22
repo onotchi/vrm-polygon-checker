@@ -9,11 +9,13 @@ class SettingsPanel extends StatelessWidget {
   final bool gridVisible;
   final bool shadowVisible;
   final Color backgroundColor;
+  final bool antialiasEnabled;
   final ValueChanged<double> onAmbientChanged;
   final ValueChanged<double> onDirectionalChanged;
   final ValueChanged<bool> onGridVisibleChanged;
   final ValueChanged<bool> onShadowVisibleChanged;
   final ValueChanged<Color> onBackgroundColorChanged;
+  final ValueChanged<bool> onAntialiasChanged;
   final VoidCallback onLanguageChanged;
 
   const SettingsPanel({
@@ -23,11 +25,13 @@ class SettingsPanel extends StatelessWidget {
     required this.gridVisible,
     required this.shadowVisible,
     required this.backgroundColor,
+    required this.antialiasEnabled,
     required this.onAmbientChanged,
     required this.onDirectionalChanged,
     required this.onGridVisibleChanged,
     required this.onShadowVisibleChanged,
     required this.onBackgroundColorChanged,
+    required this.onAntialiasChanged,
     required this.onLanguageChanged,
   });
 
@@ -179,6 +183,20 @@ class SettingsPanel extends StatelessWidget {
             _buildColorButton(context, const Color(0xFF90EE90)),
             _buildColorButton(context, const Color(0xFFFFF9C4)),
             _buildColorButton(context, const Color(0xFFFFCDD2)),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(Localization.get('antialias'), style: const TextStyle(fontSize: 12)),
+            Switch(
+              value: antialiasEnabled,
+              onChanged: (value) {
+                onAntialiasChanged(value);
+                js.setAntialias(value.toJS);
+              },
+            ),
           ],
         ),
       ],

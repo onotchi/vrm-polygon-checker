@@ -1,6 +1,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 import { VRMLoaderPlugin } from '@pixiv/three-vrm';
 import { VRMAnimationLoaderPlugin, createVRMAnimationClip } from '@pixiv/three-vrm-animation';
 
@@ -33,6 +38,37 @@ const size = getCanvasSize();
 renderer.setSize(size.width, size.height);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setClearColor(0xffffff, 1); // Default white background
+
+// FXAA post-processing for antialias
+let composer = null;
+let fxaaPass = null;
+let antialiasEnabled = false;
+
+function setupFXAA(scene, camera) {
+  composer = new EffectComposer(renderer);
+  const renderPass = new RenderPass(scene, camera);
+  composer.addPass(renderPass);
+
+  fxaaPass = new ShaderPass(FXAAShader);
+  const pixelRatio = renderer.getPixelRatio();
+  const size = getCanvasSize();
+  fxaaPass.material.uniforms['resolution'].value.x = 1 / (size.width * pixelRatio);
+  fxaaPass.material.uniforms['resolution'].value.y = 1 / (size.height * pixelRatio);
+  composer.addPass(fxaaPass);
+
+  // OutputPass for correct sRGB color output
+  const outputPass = new OutputPass();
+  composer.addPass(outputPass);
+}
+
+function updateFXAAResolution() {
+  if (fxaaPass) {
+    const pixelRatio = renderer.getPixelRatio();
+    const size = getCanvasSize();
+    fxaaPass.material.uniforms['resolution'].value.x = 1 / (size.width * pixelRatio);
+    fxaaPass.material.uniforms['resolution'].value.y = 1 / (size.height * pixelRatio);
+  }
+}
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xffffff);
@@ -385,8 +421,18 @@ function animate() {
   }
 
   controls.update();
-  renderer.render(scene, camera);
+
+  // Render with or without FXAA
+  if (antialiasEnabled && composer) {
+    composer.render();
+  } else {
+    renderer.render(scene, camera);
+  }
 }
+
+// Setup FXAA composer
+setupFXAA(scene, camera);
+
 animate();
 
 // Handle resize
@@ -395,6 +441,10 @@ window.addEventListener('resize', () => {
   camera.aspect = size.width / size.height;
   camera.updateProjectionMatrix();
   renderer.setSize(size.width, size.height);
+  if (composer) {
+    composer.setSize(size.width, size.height);
+  }
+  updateFXAAResolution();
 });
 
 // Pointer event handlers for Flutter
@@ -665,6 +715,18 @@ window.setBackgroundColor = function(r, g, b) {
   scene.background = color;
   renderer.setClearColor(color, 1);
   return JSON.stringify({ success: true, r: r, g: g, b: b });
+};
+
+// Set antialias enabled/disabled (using FXAA post-processing)
+window.setAntialias = function(enabled) {
+  antialiasEnabled = enabled;
+  console.log('FXAA Antialias:', enabled ? 'ON' : 'OFF');
+  return JSON.stringify({ success: true, antialias: enabled });
+};
+
+// Get antialias state
+window.getAntialias = function() {
+  return JSON.stringify({ antialias: antialiasEnabled });
 };
 
 // Wireframe state (supports multiple meshes)

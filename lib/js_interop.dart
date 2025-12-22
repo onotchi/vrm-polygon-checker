@@ -88,6 +88,12 @@ external JSString setShadowVisible(JSBoolean visible);
 @JS('setBackgroundColor')
 external JSString setBackgroundColor(JSNumber r, JSNumber g, JSNumber b);
 
+@JS('setAntialias')
+external JSString setAntialias(JSBoolean enabled);
+
+@JS('getAntialias')
+external JSString getAntialias();
+
 // Callback setters
 @JS('onVRMLoaded')
 external set onVRMLoadedCallback(JSFunction? callback);

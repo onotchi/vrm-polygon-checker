@@ -63,6 +63,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   bool _gridVisible = true;
   bool _shadowVisible = true;
   Color _backgroundColor = const Color(0xFFFFFFFF);
+  bool _antialiasEnabled = false;
 
   // Panel width
   double _infoPanelWidth = 320;
@@ -301,11 +302,13 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
             gridVisible: _gridVisible,
             shadowVisible: _shadowVisible,
             backgroundColor: _backgroundColor,
+            antialiasEnabled: _antialiasEnabled,
             onAmbientChanged: (value) => setState(() => _ambientIntensity = value),
             onDirectionalChanged: (value) => setState(() => _directionalIntensity = value),
             onGridVisibleChanged: (value) => setState(() => _gridVisible = value),
             onShadowVisibleChanged: (value) => setState(() => _shadowVisible = value),
             onBackgroundColorChanged: (value) => setState(() => _backgroundColor = value),
+            onAntialiasChanged: (value) => setState(() => _antialiasEnabled = value),
             onLanguageChanged: () => setState(() {}),
           ),
           const CanvasArea(),
