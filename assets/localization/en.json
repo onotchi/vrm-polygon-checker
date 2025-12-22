@@ -36,5 +36,9 @@
   "sortReset": "Reset Sort",
   "meshFocusHint": "Long-press mesh name for solo view",
   "trianglesVisible": "Triangles (visible)",
-  "antialias": "Antialias"
+  "antialias": "Antialias",
+  "previousFrame": "Previous frame",
+  "nextFrame": "Next frame",
+  "play": "Play",
+  "pause": "Pause"
 }

@@ -758,7 +758,7 @@ class _AnimationSeekBarState extends State<_AnimationSeekBar> {
               iconSize: 20,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
-              tooltip: 'Previous frame',
+              tooltip: Localization.get('previousFrame'),
             ),
             const SizedBox(width: 8),
             IconButton(
@@ -767,6 +767,7 @@ class _AnimationSeekBarState extends State<_AnimationSeekBar> {
               iconSize: 24,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
+              tooltip: Localization.get(_isPaused ? 'play' : 'pause'),
             ),
             const SizedBox(width: 8),
             IconButton(
@@ -775,7 +776,7 @@ class _AnimationSeekBarState extends State<_AnimationSeekBar> {
               iconSize: 20,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
-              tooltip: 'Next frame',
+              tooltip: Localization.get('nextFrame'),
             ),
           ],
         ),
