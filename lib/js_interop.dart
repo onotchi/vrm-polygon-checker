@@ -11,6 +11,30 @@ external void openVRMAPicker();
 @JS('stopAnimation')
 external JSString stopAnimation();
 
+@JS('getAnimationDuration')
+external JSString getAnimationDuration();
+
+@JS('getAnimationTime')
+external JSString getAnimationTime();
+
+@JS('setAnimationTime')
+external JSString setAnimationTime(JSNumber time);
+
+@JS('pauseAnimation')
+external JSString pauseAnimation();
+
+@JS('resumeAnimation')
+external JSString resumeAnimation();
+
+@JS('isAnimationPaused')
+external JSString isAnimationPaused();
+
+@JS('stepAnimationForward')
+external JSString stepAnimationForward();
+
+@JS('stepAnimationBackward')
+external JSString stepAnimationBackward();
+
 // Expression
 @JS('setExpression')
 external JSString setExpression(JSString expressionName, JSNumber value);

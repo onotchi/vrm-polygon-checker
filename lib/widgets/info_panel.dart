@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'dart:js_interop';
 import '../localization.dart';
@@ -153,25 +155,30 @@ class InfoPanel extends StatelessWidget {
         Card(
           child: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Row(
+            child: Column(
               children: [
-                const Icon(Icons.play_circle, color: Colors.green),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    animationInfo!['fileName'] ?? 'Animation',
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 12),
-                  ),
+                Row(
+                  children: [
+                    const Icon(Icons.play_circle, color: Colors.green),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        animationInfo!['fileName'] ?? 'Animation',
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: onStopAnimation,
+                      icon: const Icon(Icons.stop),
+                      tooltip: Localization.get('stopAnimation'),
+                      iconSize: 20,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
                 ),
-                IconButton(
-                  onPressed: onStopAnimation,
-                  icon: const Icon(Icons.stop),
-                  tooltip: Localization.get('stopAnimation'),
-                  iconSize: 20,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
+                const _AnimationSeekBar(),
               ],
             ),
           ),
@@ -613,6 +620,180 @@ class InfoPanel extends StatelessWidget {
               fontSize: 10,
               color: Colors.grey.shade500,
             ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// Animation seek bar widget with periodic updates
+class _AnimationSeekBar extends StatefulWidget {
+  const _AnimationSeekBar();
+
+  @override
+  State<_AnimationSeekBar> createState() => _AnimationSeekBarState();
+}
+
+class _AnimationSeekBarState extends State<_AnimationSeekBar> {
+  Timer? _timer;
+  double _currentTime = 0;
+  double _duration = 0;
+  bool _isDragging = false;
+  bool _isPaused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDuration();
+    _fetchPausedState();
+    _startTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _fetchDuration() {
+    final result = jsonDecode(js.getAnimationDuration().toDart);
+    if (result['duration'] != null) {
+      setState(() {
+        _duration = (result['duration'] as num).toDouble();
+      });
+    }
+  }
+
+  void _fetchPausedState() {
+    final result = jsonDecode(js.isAnimationPaused().toDart);
+    if (result['paused'] != null) {
+      setState(() {
+        _isPaused = result['paused'] as bool;
+      });
+    }
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(const Duration(milliseconds: 50), (_) {
+      if (!_isDragging) {
+        final result = jsonDecode(js.getAnimationTime().toDart);
+        if (result['time'] != null) {
+          setState(() {
+            _currentTime = (result['time'] as num).toDouble();
+          });
+        }
+      }
+    });
+  }
+
+  void _togglePlayPause() {
+    if (_isPaused) {
+      js.resumeAnimation();
+    } else {
+      js.pauseAnimation();
+    }
+    setState(() {
+      _isPaused = !_isPaused;
+    });
+  }
+
+  void _stepForward() {
+    js.stepAnimationForward();
+    setState(() {
+      _isPaused = true;
+    });
+  }
+
+  void _stepBackward() {
+    js.stepAnimationBackward();
+    setState(() {
+      _isPaused = true;
+    });
+  }
+
+  String _formatTime(double seconds) {
+    final mins = (seconds / 60).floor();
+    final secs = (seconds % 60).toStringAsFixed(1);
+    return '$mins:${secs.padLeft(4, '0')}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_duration <= 0) return const SizedBox.shrink();
+
+    return Column(
+      children: [
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            trackHeight: 4,
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+          ),
+          child: Slider(
+            value: _currentTime.clamp(0, _duration),
+            min: 0,
+            max: _duration,
+            onChangeStart: (_) {
+              _isDragging = true;
+            },
+            onChanged: (value) {
+              setState(() {
+                _currentTime = value;
+              });
+            },
+            onChangeEnd: (value) {
+              js.setAnimationTime(value.toJS);
+              _isDragging = false;
+            },
+          ),
+        ),
+        // Playback controls
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              onPressed: _stepBackward,
+              icon: const Icon(Icons.skip_previous),
+              iconSize: 20,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              tooltip: 'Previous frame',
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              onPressed: _togglePlayPause,
+              icon: Icon(_isPaused ? Icons.play_arrow : Icons.pause),
+              iconSize: 24,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              onPressed: _stepForward,
+              icon: const Icon(Icons.skip_next),
+              iconSize: 20,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              tooltip: 'Next frame',
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                _formatTime(_currentTime),
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+              ),
+              Text(
+                _formatTime(_duration),
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+              ),
+            ],
           ),
         ),
       ],

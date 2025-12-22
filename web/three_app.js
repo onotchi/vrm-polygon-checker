@@ -543,6 +543,80 @@ window.stopAnimation = function() {
   return JSON.stringify({ success: true });
 };
 
+// Get animation duration
+window.getAnimationDuration = function() {
+  if (!currentAction || !currentAction.getClip()) {
+    return JSON.stringify({ error: 'No animation playing', duration: 0 });
+  }
+  return JSON.stringify({ duration: currentAction.getClip().duration });
+};
+
+// Get current animation time
+window.getAnimationTime = function() {
+  if (!currentAction) {
+    return JSON.stringify({ error: 'No animation playing', time: 0 });
+  }
+  return JSON.stringify({ time: currentAction.time });
+};
+
+// Set animation time (seek)
+window.setAnimationTime = function(time) {
+  if (!currentAction) {
+    return JSON.stringify({ error: 'No animation playing' });
+  }
+  currentAction.time = time;
+  return JSON.stringify({ success: true, time: time });
+};
+
+// Pause animation
+window.pauseAnimation = function() {
+  if (!currentAction) {
+    return JSON.stringify({ error: 'No animation playing' });
+  }
+  currentAction.paused = true;
+  return JSON.stringify({ success: true, paused: true });
+};
+
+// Resume animation
+window.resumeAnimation = function() {
+  if (!currentAction) {
+    return JSON.stringify({ error: 'No animation playing' });
+  }
+  currentAction.paused = false;
+  return JSON.stringify({ success: true, paused: false });
+};
+
+// Check if animation is paused
+window.isAnimationPaused = function() {
+  if (!currentAction) {
+    return JSON.stringify({ error: 'No animation playing', paused: false });
+  }
+  return JSON.stringify({ paused: currentAction.paused });
+};
+
+// Step animation forward (1 frame at ~60fps = ~16.67ms)
+window.stepAnimationForward = function() {
+  if (!currentAction) {
+    return JSON.stringify({ error: 'No animation playing' });
+  }
+  const frameTime = 1 / 60;
+  const duration = currentAction.getClip().duration;
+  currentAction.time = Math.min(currentAction.time + frameTime, duration);
+  currentAction.paused = true;
+  return JSON.stringify({ success: true, time: currentAction.time });
+};
+
+// Step animation backward (1 frame at ~60fps = ~16.67ms)
+window.stepAnimationBackward = function() {
+  if (!currentAction) {
+    return JSON.stringify({ error: 'No animation playing' });
+  }
+  const frameTime = 1 / 60;
+  currentAction.time = Math.max(currentAction.time - frameTime, 0);
+  currentAction.paused = true;
+  return JSON.stringify({ success: true, time: currentAction.time });
+};
+
 // Open VRMA file picker
 window.openVRMAPicker = function() {
   const input = document.createElement('input');
