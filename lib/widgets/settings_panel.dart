@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:js_interop';
+import 'package:web/web.dart' as web;
 import '../localization.dart';
 import '../js_interop.dart' as js;
 
@@ -69,6 +70,28 @@ class SettingsPanel extends StatelessWidget {
                 const SizedBox(height: 16),
                 _buildLanguageSection(context),
               ],
+            ),
+          ),
+          const Spacer(),
+          // Footer
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: GestureDetector(
+              onTap: () {
+                web.window.open('https://x.com/onotchi_', '_blank');
+              },
+              child: const MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: Text(
+                  'Produced By オノッチ',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey,
+                    decoration: TextDecoration.underline,
+                    decorationColor: Colors.grey,
+                  ),
+                ),
+              ),
             ),
           ),
         ],
