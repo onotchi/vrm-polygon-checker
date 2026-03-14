@@ -318,8 +318,8 @@ function getVRMInfo(vrm, gltf, fileName = null) {
     triangleCount: Math.floor(totalTriangles),
     meshDetails: meshDetails,
 
-    // Bone info
-    boneCount: vrm.humanoid?.humanBones ? Object.keys(vrm.humanoid.humanBones).length : 0,
+    // Bone info (count all bones in the scene, not just humanoid bones)
+    boneCount: (() => { let c = 0; vrm.scene.traverse((o) => { if (o.isBone) c++; }); return c; })(),
 
     // Material info
     materialCount: gltf.parser?.json?.materials?.length || 0,
