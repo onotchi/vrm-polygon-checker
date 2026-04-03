@@ -64,6 +64,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   bool _shadowVisible = true;
   Color _backgroundColor = const Color(0xFFFFFFFF);
   bool _antialiasEnabled = false;
+  double _cameraFov = 45.0;
 
   // Panel width
   double _infoPanelWidth = 320;
@@ -303,8 +304,10 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
             shadowVisible: _shadowVisible,
             backgroundColor: _backgroundColor,
             antialiasEnabled: _antialiasEnabled,
+            cameraFov: _cameraFov,
             onAmbientChanged: (value) => setState(() => _ambientIntensity = value),
             onDirectionalChanged: (value) => setState(() => _directionalIntensity = value),
+            onCameraFovChanged: (value) => setState(() => _cameraFov = value),
             onGridVisibleChanged: (value) => setState(() => _gridVisible = value),
             onShadowVisibleChanged: (value) => setState(() => _shadowVisible = value),
             onBackgroundColorChanged: (value) => setState(() => _backgroundColor = value),

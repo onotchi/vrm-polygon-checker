@@ -36,6 +36,7 @@
   "sortReset": "ソート無し",
   "meshFocusHint": "※メッシュ名長押しで単体表示",
   "trianglesVisible": "ポリゴン数(表示中)",
+  "fov": "画角",
   "antialias": "アンチエイリアス",
   "previousFrame": "前のコマ",
   "nextFrame": "次のコマ",

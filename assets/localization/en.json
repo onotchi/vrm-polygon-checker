@@ -36,6 +36,7 @@
   "sortReset": "Reset Sort",
   "meshFocusHint": "Long-press mesh name for solo view",
   "trianglesVisible": "Triangles (visible)",
+  "fov": "FOV",
   "antialias": "Antialias",
   "previousFrame": "Previous frame",
   "nextFrame": "Next frame",

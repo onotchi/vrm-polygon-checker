@@ -78,6 +78,10 @@ external JSString clearWireframe(JSString meshName);
 @JS('highlightMesh')
 external JSString highlightMesh(JSString meshName);
 
+// Camera
+@JS('setCameraFov')
+external JSString setCameraFov(JSNumber fov);
+
 // Display settings
 @JS('setGridVisible')
 external JSString setGridVisible(JSBoolean visible);

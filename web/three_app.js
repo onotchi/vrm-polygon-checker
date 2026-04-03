@@ -720,6 +720,13 @@ window.getLightIntensity = function() {
   });
 };
 
+// Camera FOV control
+window.setCameraFov = function(fov) {
+  camera.fov = fov;
+  camera.updateProjectionMatrix();
+  return JSON.stringify({ success: true, fov: fov });
+};
+
 // Grid and shadow visibility controls
 window.setGridVisible = function(visible) {
   gridHelper.visible = visible;

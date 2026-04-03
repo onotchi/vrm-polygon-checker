@@ -12,8 +12,10 @@ class SettingsPanel extends StatelessWidget {
   final bool shadowVisible;
   final Color backgroundColor;
   final bool antialiasEnabled;
+  final double cameraFov;
   final ValueChanged<double> onAmbientChanged;
   final ValueChanged<double> onDirectionalChanged;
+  final ValueChanged<double> onCameraFovChanged;
   final ValueChanged<bool> onGridVisibleChanged;
   final ValueChanged<bool> onShadowVisibleChanged;
   final ValueChanged<Color> onBackgroundColorChanged;
@@ -28,8 +30,10 @@ class SettingsPanel extends StatelessWidget {
     required this.shadowVisible,
     required this.backgroundColor,
     required this.antialiasEnabled,
+    required this.cameraFov,
     required this.onAmbientChanged,
     required this.onDirectionalChanged,
+    required this.onCameraFovChanged,
     required this.onGridVisibleChanged,
     required this.onShadowVisibleChanged,
     required this.onBackgroundColorChanged,
@@ -181,6 +185,30 @@ class SettingsPanel extends StatelessWidget {
           style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
+        Text(Localization.get('fov'), style: const TextStyle(fontSize: 12)),
+        Row(
+          children: [
+            Expanded(
+              child: Slider(
+                value: cameraFov,
+                min: 10,
+                max: 120,
+                divisions: 22,
+                onChanged: (value) {
+                  onCameraFovChanged(value);
+                  js.setCameraFov(value.toJS);
+                },
+              ),
+            ),
+            SizedBox(
+              width: 32,
+              child: Text(
+                '${cameraFov.round()}°',
+                style: const TextStyle(fontSize: 12),
+              ),
+            ),
+          ],
+        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
