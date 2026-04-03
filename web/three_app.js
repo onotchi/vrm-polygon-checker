@@ -38,6 +38,7 @@ const size = getCanvasSize();
 renderer.setSize(size.width, size.height);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setClearColor(0xffffff, 1); // Default white background
+renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 // FXAA post-processing for antialias
 let composer = null;
@@ -87,6 +88,27 @@ scene.add(ambientLight);
 const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 directionalLight.position.set(1, 1, 1);
 scene.add(directionalLight);
+
+// Environment map for PBR/Standard materials (neutral white IBL)
+// MToon ignores environment maps, so this only affects Standard shader materials
+{
+  const pmremGenerator = new THREE.PMREMGenerator(renderer);
+  const envScene = new THREE.Scene();
+  envScene.background = new THREE.Color(0xffffff);
+  // Add soft lights to the environment scene for natural indirect lighting
+  const envLight1 = new THREE.DirectionalLight(0xffffff, 2);
+  envLight1.position.set(1, 1, 1);
+  envScene.add(envLight1);
+  const envLight2 = new THREE.DirectionalLight(0xffffff, 1);
+  envLight2.position.set(-1, 0.5, -1);
+  envScene.add(envLight2);
+  const envLight3 = new THREE.HemisphereLight(0xffffff, 0x888888, 1);
+  envScene.add(envLight3);
+  const envMap = pmremGenerator.fromScene(envScene).texture;
+  scene.environment = envMap;
+  pmremGenerator.dispose();
+  envScene.clear();
+}
 
 // Grid helper
 const gridHelper = new THREE.GridHelper(10, 20, 0x888888, 0xcccccc);
