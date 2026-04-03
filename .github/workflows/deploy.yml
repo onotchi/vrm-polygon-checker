@@ -30,7 +30,7 @@ jobs:
         run: flutter pub get
 
       - name: Build web
-        run: flutter build web --release --base-href "/vrm-polygon-checker/"
+        run: flutter build web --release --web-renderer html --base-href "/vrm-polygon-checker/"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:api.flutter.dev)",
+      "WebFetch(domain:world.hey.com)",
+      "WebFetch(domain:heistak.github.io)"
+    ]
+  }
+}
