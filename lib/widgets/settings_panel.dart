@@ -3,6 +3,7 @@ import 'dart:js_interop';
 import 'package:web/web.dart' as web;
 import '../localization.dart';
 import '../js_interop.dart' as js;
+import '../constants.dart';
 
 class SettingsPanel extends StatelessWidget {
   final double ambientIntensity;
@@ -76,22 +77,35 @@ class SettingsPanel extends StatelessWidget {
           // Footer
           Padding(
             padding: const EdgeInsets.all(12),
-            child: GestureDetector(
-              onTap: () {
-                web.window.open('https://x.com/onotchi_', '_blank');
-              },
-              child: const MouseRegion(
-                cursor: SystemMouseCursors.click,
-                child: Text(
-                  'Produced By オノッチ',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'v$appVersion',
                   style: TextStyle(
                     fontSize: 11,
                     color: Colors.grey,
-                    decoration: TextDecoration.underline,
-                    decorationColor: Colors.grey,
                   ),
                 ),
-              ),
+                const SizedBox(height: 2),
+                GestureDetector(
+                  onTap: () {
+                    web.window.open('https://x.com/onotchi_', '_blank');
+                  },
+                  child: const MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: Text(
+                      'Produced By オノッチ',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey,
+                        decoration: TextDecoration.underline,
+                        decorationColor: Colors.grey,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
