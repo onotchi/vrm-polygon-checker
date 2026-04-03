@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'package:web/web.dart' as web;
 
 enum AppLanguage { ja, en }
 
@@ -11,6 +12,7 @@ class Localization {
   /// Load language file from assets
   static Future<void> load(AppLanguage language) async {
     currentLanguage = language;
+    (web.document.documentElement as web.HTMLElement?)?.lang = language.name;
 
     // Return cached strings if already loaded
     if (_cache.containsKey(language)) {
