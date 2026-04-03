@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:js_interop';
 import 'dart:convert';
 import 'localization.dart';
@@ -23,7 +24,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
-        fontFamily: 'Noto Sans JP',
+        textTheme: GoogleFonts.notoSansJpTextTheme(),
       ),
       home: const VRMViewerPage(),
     );
