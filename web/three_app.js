@@ -3,9 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 import { VRMLoaderPlugin } from '@pixiv/three-vrm';
 import { VRMAnimationLoaderPlugin, createVRMAnimationClip } from '@pixiv/three-vrm-animation';
 
@@ -49,35 +47,32 @@ renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setClearColor(0xffffff, 1); // Default white background
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
-// FXAA post-processing for antialias
+// Antialias post-processing (4x MSAA)
+const MSAA_SAMPLES = 4;
 let composer = null;
-let fxaaPass = null;
 let antialiasEnabled = false;
 
-function setupFXAA(scene, camera) {
-  composer = new EffectComposer(renderer);
-  const renderPass = new RenderPass(scene, camera);
-  composer.addPass(renderPass);
-
-  fxaaPass = new ShaderPass(FXAAShader);
-  const pixelRatio = renderer.getPixelRatio();
+function setupComposer(scene, camera) {
   const size = getCanvasSize();
-  fxaaPass.material.uniforms['resolution'].value.x = 1 / (size.width * pixelRatio);
-  fxaaPass.material.uniforms['resolution'].value.y = 1 / (size.height * pixelRatio);
-  composer.addPass(fxaaPass);
+  const pixelRatio = renderer.getPixelRatio();
+
+  // EffectComposer creates its render target without multisampling, so pass one
+  // in. HalfFloatType matches what it would have made on its own.
+  const samples = Math.min(MSAA_SAMPLES, renderer.capabilities.maxSamples);
+  const renderTarget = new THREE.WebGLRenderTarget(
+    size.width * pixelRatio,
+    size.height * pixelRatio,
+    { type: THREE.HalfFloatType, samples: samples }
+  );
+  composer = new EffectComposer(renderer, renderTarget);
+  // Given a render target, the composer takes its size in physical pixels.
+  // setSize() puts it back on logical pixels like the auto-created one.
+  composer.setSize(size.width, size.height);
+
+  composer.addPass(new RenderPass(scene, camera));
 
   // OutputPass for correct sRGB color output
-  const outputPass = new OutputPass();
-  composer.addPass(outputPass);
-}
-
-function updateFXAAResolution() {
-  if (fxaaPass) {
-    const pixelRatio = renderer.getPixelRatio();
-    const size = getCanvasSize();
-    fxaaPass.material.uniforms['resolution'].value.x = 1 / (size.width * pixelRatio);
-    fxaaPass.material.uniforms['resolution'].value.y = 1 / (size.height * pixelRatio);
-  }
+  composer.addPass(new OutputPass());
 }
 
 const scene = new THREE.Scene();
@@ -465,7 +460,7 @@ function animate() {
 
   controls.update();
 
-  // Render with or without FXAA
+  // Render with or without antialias
   if (antialiasEnabled && composer) {
     composer.render();
   } else {
@@ -473,8 +468,8 @@ function animate() {
   }
 }
 
-// Setup FXAA composer
-setupFXAA(scene, camera);
+// Setup antialias composer
+setupComposer(scene, camera);
 
 animate();
 
@@ -487,7 +482,6 @@ function applyCanvasSize() {
   if (composer) {
     composer.setSize(size.width, size.height);
   }
-  updateFXAAResolution();
 }
 
 // Handle resize
@@ -793,10 +787,10 @@ window.setBackgroundColor = function(r, g, b) {
   return JSON.stringify({ success: true, r: r, g: g, b: b });
 };
 
-// Set antialias enabled/disabled (using FXAA post-processing)
+// Set antialias enabled/disabled (4x MSAA)
 window.setAntialias = function(enabled) {
   antialiasEnabled = enabled;
-  console.log('FXAA Antialias:', enabled ? 'ON' : 'OFF');
+  console.log('MSAA Antialias:', enabled ? 'ON' : 'OFF');
   return JSON.stringify({ success: true, antialias: enabled });
 };
 
