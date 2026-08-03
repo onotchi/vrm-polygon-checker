@@ -101,9 +101,6 @@ external JSString setBackgroundColor(JSNumber r, JSNumber g, JSNumber b);
 @JS('setAntialias')
 external JSString setAntialias(JSBoolean enabled);
 
-@JS('getAntialias')
-external JSString getAntialias();
-
 // Panel layout
 @JS('setPanelLayout')
 external JSString setPanelLayout(JSNumber left, JSNumber right);

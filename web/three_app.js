@@ -178,17 +178,6 @@ let currentVRMAFileName = null;
 const vrmaLoader = new GLTFLoader();
 vrmaLoader.register((parser) => new VRMAnimationLoaderPlugin(parser));
 
-// Load VRM from URL (will be called from Flutter)
-window.loadVRM = async function(url) {
-  try {
-    const gltf = await loader.loadAsync(url);
-    return setupVRM(gltf);
-  } catch (e) {
-    console.error('VRM load error:', e);
-    return JSON.stringify({ error: e.message });
-  }
-};
-
 // Load VRM from ArrayBuffer (for local files)
 window.loadVRMFromBuffer = async function(arrayBuffer, fileName) {
   try {
@@ -740,13 +729,6 @@ window.openVRMAPicker = function() {
   input.click();
 };
 
-window.getLightIntensity = function() {
-  return JSON.stringify({
-    ambient: ambientLight.intensity,
-    directional: directionalLight.intensity
-  });
-};
-
 // Camera FOV control
 window.setCameraFov = function(fov) {
   camera.fov = fov;
@@ -792,11 +774,6 @@ window.setAntialias = function(enabled) {
   antialiasEnabled = enabled;
   console.log('MSAA Antialias:', enabled ? 'ON' : 'OFF');
   return JSON.stringify({ success: true, antialias: enabled });
-};
-
-// Get antialias state
-window.getAntialias = function() {
-  return JSON.stringify({ antialias: antialiasEnabled });
 };
 
 // Fullscreen state (works regardless of the browser's own shortcut key)
