@@ -235,8 +235,11 @@ class SettingsPanel extends StatelessWidget {
             _buildColorButton(context, const Color(0xFF000000)),
             _buildColorButton(context, const Color(0xFF87CEEB)),
             _buildColorButton(context, const Color(0xFF90EE90)),
-            _buildColorButton(context, const Color(0xFFFFF9C4)),
             _buildColorButton(context, const Color(0xFFFFCDD2)),
+            _ColorPickerButton(
+              currentColor: backgroundColor,
+              onColorChanged: onBackgroundColorChanged,
+            ),
           ],
         ),
         const SizedBox(height: 8),
@@ -511,6 +514,82 @@ class _FullscreenButtonState extends State<_FullscreenButton> {
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 8),
           visualDensity: VisualDensity.compact,
+        ),
+      ),
+    );
+  }
+}
+
+/// Opens the browser's built-in color picker so the background can be set to
+/// any color, not just the presets next to it.
+class _ColorPickerButton extends StatelessWidget {
+  final Color currentColor;
+  final ValueChanged<Color> onColorChanged;
+
+  const _ColorPickerButton({
+    required this.currentColor,
+    required this.onColorChanged,
+  });
+
+  static String _toHex(Color color) {
+    final r = (color.r * 255).round();
+    final g = (color.g * 255).round();
+    final b = (color.b * 255).round();
+    return '#${r.toRadixString(16).padLeft(2, '0')}'
+        '${g.toRadixString(16).padLeft(2, '0')}'
+        '${b.toRadixString(16).padLeft(2, '0')}';
+  }
+
+  void _openPicker(BuildContext context) {
+    final box = context.findRenderObject() as RenderBox?;
+    final origin = box?.localToGlobal(Offset.zero) ?? Offset.zero;
+
+    final input = web.document.createElement('input') as web.HTMLInputElement;
+    input.type = 'color';
+    input.value = _toHex(currentColor);
+    // Sit invisibly on top of the button so the picker pops up next to it.
+    input.style.cssText = 'position:fixed;'
+        'left:${origin.dx}px; top:${origin.dy}px;'
+        'width:24px; height:24px;'
+        'opacity:0; border:none; padding:0;';
+    web.document.body!.appendChild(input);
+
+    void apply() {
+      final value = input.value;
+      if (value.length != 7) return;
+      final r = int.parse(value.substring(1, 3), radix: 16);
+      final g = int.parse(value.substring(3, 5), radix: 16);
+      final b = int.parse(value.substring(5, 7), radix: 16);
+      onColorChanged(Color.fromARGB(255, r, g, b));
+      js.setBackgroundColor(r.toJS, g.toJS, b.toJS);
+    }
+
+    input.addEventListener('input', ((web.Event event) => apply()).toJS);
+    input.addEventListener('change', ((web.Event event) {
+      apply();
+      input.remove();
+    }).toJS);
+    input.click();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => _openPicker(context),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: Container(
+          width: 24,
+          height: 24,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey, width: 1),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: const Text(
+            '🎨',
+            style: TextStyle(fontSize: 16, height: 1.0),
+          ),
         ),
       ),
     );
