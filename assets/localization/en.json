@@ -40,6 +40,7 @@
   "antialias": "Antialias",
   "fullscreen": "Fullscreen",
   "exitFullscreen": "Exit Fullscreen",
+  "hidePanels": "Hide Panels",
   "previousFrame": "Previous frame",
   "nextFrame": "Next frame",
   "play": "Play",

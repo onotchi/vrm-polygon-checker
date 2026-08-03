@@ -70,6 +70,18 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
 
   // Panel width
   double _infoPanelWidth = 320;
+  static const double _settingsPanelWidth = 200;
+
+  // Side panel visibility (click the canvas to bring them back)
+  bool _panelsVisible = true;
+
+  void _setPanelsVisible(bool visible) {
+    setState(() => _panelsVisible = visible);
+    js.setPanelLayout(
+      (visible ? _settingsPanelWidth : 0.0).toJS,
+      (visible ? _infoPanelWidth : 0.0).toJS,
+    );
+  }
 
   @override
   void initState() {
@@ -299,55 +311,60 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
       backgroundColor: Colors.transparent,
       body: Row(
         children: [
-          SettingsPanel(
-            ambientIntensity: _ambientIntensity,
-            directionalIntensity: _directionalIntensity,
-            gridVisible: _gridVisible,
-            shadowVisible: _shadowVisible,
-            backgroundColor: _backgroundColor,
-            antialiasEnabled: _antialiasEnabled,
-            cameraFov: _cameraFov,
-            onAmbientChanged: (value) => setState(() => _ambientIntensity = value),
-            onDirectionalChanged: (value) => setState(() => _directionalIntensity = value),
-            onCameraFovChanged: (value) => setState(() => _cameraFov = value),
-            onGridVisibleChanged: (value) => setState(() => _gridVisible = value),
-            onShadowVisibleChanged: (value) => setState(() => _shadowVisible = value),
-            onBackgroundColorChanged: (value) => setState(() => _backgroundColor = value),
-            onAntialiasChanged: (value) => setState(() => _antialiasEnabled = value),
-            onLanguageChanged: () => setState(() {}),
-          ),
-          const CanvasArea(),
-          SizedBox(
-            width: _infoPanelWidth,
-            child: InfoPanel(
-              width: _infoPanelWidth,
-              vrmInfo: _vrmInfo,
-              animationInfo: _animationInfo,
-              isLoading: _isLoading,
-              isLoadingAnimation: _isLoadingAnimation,
-              errorMessage: _errorMessage,
-              activeExpression: _activeExpression,
-              focusedMesh: _focusedMesh,
-              wireframeMeshes: _wireframeMeshes,
-              hiddenMeshes: _hiddenMeshes,
-              meshSortKey: _meshSortKey,
-              meshSortAscending: _meshSortAscending,
-              onOpenFile: _openFile,
-              onOpenAnimation: _openAnimation,
-              onStopAnimation: _stopAnimation,
-              onExpressionChanged: (value) => setState(() => _activeExpression = value),
-              onMeshVisibilityChanged: _handleMeshVisibilityChanged,
-              onMeshFocusChanged: _handleMeshFocusChanged,
-              onMeshWireframeChanged: _handleMeshWireframeChanged,
-              onShowAllMeshes: _showAllMeshes,
-              onHideAllMeshes: _hideAllMeshes,
-              onWireframeAllMeshes: _wireframeAllMeshes,
-              onClearAllWireframes: _clearAllWireframes,
-              onSortChanged: _toggleMeshSort,
-              onSortReset: _resetMeshSort,
-              onWidthChanged: (value) => setState(() => _infoPanelWidth = value),
+          if (_panelsVisible)
+            SettingsPanel(
+              ambientIntensity: _ambientIntensity,
+              directionalIntensity: _directionalIntensity,
+              gridVisible: _gridVisible,
+              shadowVisible: _shadowVisible,
+              backgroundColor: _backgroundColor,
+              antialiasEnabled: _antialiasEnabled,
+              cameraFov: _cameraFov,
+              onAmbientChanged: (value) => setState(() => _ambientIntensity = value),
+              onDirectionalChanged: (value) => setState(() => _directionalIntensity = value),
+              onCameraFovChanged: (value) => setState(() => _cameraFov = value),
+              onGridVisibleChanged: (value) => setState(() => _gridVisible = value),
+              onShadowVisibleChanged: (value) => setState(() => _shadowVisible = value),
+              onBackgroundColorChanged: (value) => setState(() => _backgroundColor = value),
+              onAntialiasChanged: (value) => setState(() => _antialiasEnabled = value),
+              onLanguageChanged: () => setState(() {}),
+              onHidePanels: () => _setPanelsVisible(false),
             ),
+          CanvasArea(
+            onTap: _panelsVisible ? null : () => _setPanelsVisible(true),
           ),
+          if (_panelsVisible)
+            SizedBox(
+              width: _infoPanelWidth,
+              child: InfoPanel(
+                width: _infoPanelWidth,
+                vrmInfo: _vrmInfo,
+                animationInfo: _animationInfo,
+                isLoading: _isLoading,
+                isLoadingAnimation: _isLoadingAnimation,
+                errorMessage: _errorMessage,
+                activeExpression: _activeExpression,
+                focusedMesh: _focusedMesh,
+                wireframeMeshes: _wireframeMeshes,
+                hiddenMeshes: _hiddenMeshes,
+                meshSortKey: _meshSortKey,
+                meshSortAscending: _meshSortAscending,
+                onOpenFile: _openFile,
+                onOpenAnimation: _openAnimation,
+                onStopAnimation: _stopAnimation,
+                onExpressionChanged: (value) => setState(() => _activeExpression = value),
+                onMeshVisibilityChanged: _handleMeshVisibilityChanged,
+                onMeshFocusChanged: _handleMeshFocusChanged,
+                onMeshWireframeChanged: _handleMeshWireframeChanged,
+                onShowAllMeshes: _showAllMeshes,
+                onHideAllMeshes: _hideAllMeshes,
+                onWireframeAllMeshes: _wireframeAllMeshes,
+                onClearAllWireframes: _clearAllWireframes,
+                onSortChanged: _toggleMeshSort,
+                onSortReset: _resetMeshSort,
+                onWidthChanged: (value) => setState(() => _infoPanelWidth = value),
+              ),
+            ),
         ],
       ),
     );

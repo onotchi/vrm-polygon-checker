@@ -22,6 +22,7 @@ class SettingsPanel extends StatelessWidget {
   final ValueChanged<Color> onBackgroundColorChanged;
   final ValueChanged<bool> onAntialiasChanged;
   final VoidCallback onLanguageChanged;
+  final VoidCallback onHidePanels;
 
   const SettingsPanel({
     super.key,
@@ -40,6 +41,7 @@ class SettingsPanel extends StatelessWidget {
     required this.onBackgroundColorChanged,
     required this.onAntialiasChanged,
     required this.onLanguageChanged,
+    required this.onHidePanels,
   });
 
   @override
@@ -267,6 +269,22 @@ class SettingsPanel extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         const _FullscreenButton(),
+        const SizedBox(height: 4),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: onHidePanels,
+            icon: const Icon(Icons.visibility_off, size: 18),
+            label: Text(
+              Localization.get('hidePanels'),
+              style: const TextStyle(fontSize: 12),
+            ),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              visualDensity: VisualDensity.compact,
+            ),
+          ),
+        ),
       ],
     );
   }

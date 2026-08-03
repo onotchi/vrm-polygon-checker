@@ -98,6 +98,10 @@ external JSString setAntialias(JSBoolean enabled);
 @JS('getAntialias')
 external JSString getAntialias();
 
+// Panel layout
+@JS('setPanelLayout')
+external JSString setPanelLayout(JSNumber left, JSNumber right);
+
 // Fullscreen
 @JS('isFullscreen')
 external JSString isFullscreen();

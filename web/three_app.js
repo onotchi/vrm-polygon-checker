@@ -9,20 +9,29 @@ import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 import { VRMLoaderPlugin } from '@pixiv/three-vrm';
 import { VRMAnimationLoaderPlugin, createVRMAnimationClip } from '@pixiv/three-vrm-animation';
 
-// Panel widths for Flutter UI
-const LEFT_PANEL_WIDTH = 200;
-const RIGHT_PANEL_WIDTH = 320;
+// Panel widths for Flutter UI (updated from Flutter via setPanelLayout)
+let leftPanelWidth = 200;
+let rightPanelWidth = 320;
 
 // Calculate canvas size
 function getCanvasSize() {
   return {
-    width: window.innerWidth - LEFT_PANEL_WIDTH - RIGHT_PANEL_WIDTH,
+    width: window.innerWidth - leftPanelWidth - rightPanelWidth,
     height: window.innerHeight
   };
 }
 
 // Three.js setup
 const canvas = document.getElementById('three-canvas');
+
+// OrbitControls calls setPointerCapture() on pointerdown. The pointer events we
+// synthesize below reuse pointerId 1, which is also the real mouse's id in
+// Chrome, so the real pointer ends up captured by this canvas and Flutter never
+// receives pointerup. Pointer coordinates are forwarded from Flutter anyway, so
+// capturing is not needed here.
+canvas.setPointerCapture = () => {};
+canvas.releasePointerCapture = () => {};
+
 // Disable browser context menu on canvas and document (for drag operations)
 canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 document.addEventListener('contextmenu', (e) => {
@@ -457,8 +466,8 @@ setupFXAA(scene, camera);
 
 animate();
 
-// Handle resize
-window.addEventListener('resize', () => {
+// Apply the current canvas size to camera / renderer / post-processing
+function applyCanvasSize() {
   const size = getCanvasSize();
   camera.aspect = size.width / size.height;
   camera.updateProjectionMatrix();
@@ -467,7 +476,19 @@ window.addEventListener('resize', () => {
     composer.setSize(size.width, size.height);
   }
   updateFXAAResolution();
-});
+}
+
+// Handle resize
+window.addEventListener('resize', applyCanvasSize);
+
+// Update canvas placement when Flutter shows/hides the side panels
+window.setPanelLayout = function(left, right) {
+  leftPanelWidth = left;
+  rightPanelWidth = right;
+  canvas.style.left = left + 'px';
+  applyCanvasSize();
+  return JSON.stringify({ success: true, left: left, right: right });
+};
 
 // Pointer event handlers for Flutter
 let isPointerDown = false;
