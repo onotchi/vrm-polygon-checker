@@ -38,6 +38,8 @@
   "trianglesVisible": "ポリゴン数(表示中)",
   "fov": "画角",
   "antialias": "アンチエイリアス",
+  "fullscreen": "最大化",
+  "exitFullscreen": "最大化を解除",
   "previousFrame": "前のコマ",
   "nextFrame": "次のコマ",
   "play": "再生",

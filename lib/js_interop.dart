@@ -98,6 +98,13 @@ external JSString setAntialias(JSBoolean enabled);
 @JS('getAntialias')
 external JSString getAntialias();
 
+// Fullscreen
+@JS('isFullscreen')
+external JSString isFullscreen();
+
+@JS('toggleFullscreen')
+external JSString toggleFullscreen();
+
 // Callback setters
 @JS('onVRMLoaded')
 external set onVRMLoadedCallback(JSFunction? callback);

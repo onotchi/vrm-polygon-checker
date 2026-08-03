@@ -758,6 +758,36 @@ window.getAntialias = function() {
   return JSON.stringify({ antialias: antialiasEnabled });
 };
 
+// Fullscreen state (works regardless of the browser's own shortcut key)
+window.isFullscreen = function() {
+  const element = document.fullscreenElement || document.webkitFullscreenElement;
+  return JSON.stringify({ fullscreen: !!element });
+};
+
+// Toggle fullscreen. Must be called from a user gesture, or browsers reject it.
+window.toggleFullscreen = function() {
+  const target = document.documentElement;
+  const active = document.fullscreenElement || document.webkitFullscreenElement;
+
+  if (active) {
+    if (document.exitFullscreen) {
+      document.exitFullscreen().catch((e) => console.warn('exitFullscreen failed:', e));
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    }
+    return JSON.stringify({ success: true, fullscreen: false });
+  }
+
+  if (target.requestFullscreen) {
+    target.requestFullscreen().catch((e) => console.warn('requestFullscreen failed:', e));
+  } else if (target.webkitRequestFullscreen) {
+    target.webkitRequestFullscreen();
+  } else {
+    return JSON.stringify({ error: 'Fullscreen is not supported on this browser.' });
+  }
+  return JSON.stringify({ success: true, fullscreen: true });
+};
+
 // Wireframe state (supports multiple meshes)
 let wireframeOriginalMaterials = new Map();
 

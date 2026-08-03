@@ -38,6 +38,8 @@
   "trianglesVisible": "Triangles (visible)",
   "fov": "FOV",
   "antialias": "Antialias",
+  "fullscreen": "Fullscreen",
+  "exitFullscreen": "Exit Fullscreen",
   "previousFrame": "Previous frame",
   "nextFrame": "Next frame",
   "play": "Play",
