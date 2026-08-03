@@ -14,6 +14,8 @@ class SettingsPanel extends StatelessWidget {
   final Color backgroundColor;
   final bool antialiasEnabled;
   final double cameraFov;
+  final bool turntableEnabled;
+  final double turntableSpeed;
   final ValueChanged<double> onAmbientChanged;
   final ValueChanged<double> onDirectionalChanged;
   final ValueChanged<double> onCameraFovChanged;
@@ -23,6 +25,8 @@ class SettingsPanel extends StatelessWidget {
   final ValueChanged<bool> onAntialiasChanged;
   final VoidCallback onLanguageChanged;
   final VoidCallback onHidePanels;
+  final ValueChanged<bool> onTurntableEnabledChanged;
+  final ValueChanged<double> onTurntableSpeedChanged;
 
   const SettingsPanel({
     super.key,
@@ -33,6 +37,8 @@ class SettingsPanel extends StatelessWidget {
     required this.backgroundColor,
     required this.antialiasEnabled,
     required this.cameraFov,
+    required this.turntableEnabled,
+    required this.turntableSpeed,
     required this.onAmbientChanged,
     required this.onDirectionalChanged,
     required this.onCameraFovChanged,
@@ -42,6 +48,8 @@ class SettingsPanel extends StatelessWidget {
     required this.onAntialiasChanged,
     required this.onLanguageChanged,
     required this.onHidePanels,
+    required this.onTurntableEnabledChanged,
+    required this.onTurntableSpeedChanged,
   });
 
   @override
@@ -75,6 +83,8 @@ class SettingsPanel extends StatelessWidget {
                 _buildLightingSection(context),
                 const SizedBox(height: 16),
                 _buildDisplaySection(context),
+                const SizedBox(height: 16),
+                _buildCameraSection(context),
                 const SizedBox(height: 16),
                 _buildLanguageSection(context),
               ],
@@ -188,30 +198,6 @@ class SettingsPanel extends StatelessWidget {
           style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
-        Text(Localization.get('fov'), style: const TextStyle(fontSize: 12)),
-        Row(
-          children: [
-            Expanded(
-              child: Slider(
-                value: cameraFov,
-                min: 10,
-                max: 120,
-                divisions: 22,
-                onChanged: (value) {
-                  onCameraFovChanged(value);
-                  js.setCameraFov(value.toJS);
-                },
-              ),
-            ),
-            SizedBox(
-              width: 32,
-              child: Text(
-                '${cameraFov.round()}°',
-                style: const TextStyle(fontSize: 12),
-              ),
-            ),
-          ],
-        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -284,6 +270,111 @@ class SettingsPanel extends StatelessWidget {
               visualDensity: VisualDensity.compact,
             ),
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCameraSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          Localization.get('camera'),
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        Text(Localization.get('fov'), style: const TextStyle(fontSize: 12)),
+        Row(
+          children: [
+            Expanded(
+              child: Slider(
+                value: cameraFov,
+                min: 10,
+                max: 120,
+                divisions: 22,
+                onChanged: (value) {
+                  onCameraFovChanged(value);
+                  js.setCameraFov(value.toJS);
+                },
+              ),
+            ),
+            SizedBox(
+              width: 32,
+              child: Text(
+                '${cameraFov.round()}°',
+                style: const TextStyle(fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () => js.resetCamera(),
+            icon: const Icon(Icons.restart_alt, size: 18),
+            label: Text(
+              Localization.get('resetCamera'),
+              style: const TextStyle(fontSize: 12),
+            ),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              visualDensity: VisualDensity.compact,
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () {
+              final next = !turntableEnabled;
+              onTurntableEnabledChanged(next);
+              js.setTurntableSpeed((next ? turntableSpeed : 0.0).toJS);
+            },
+            icon: Icon(
+              turntableEnabled ? Icons.stop : Icons.threesixty,
+              size: 18,
+            ),
+            label: Text(
+              Localization.get(
+                  turntableEnabled ? 'stopTurntable' : 'startTurntable'),
+              style: const TextStyle(fontSize: 12),
+            ),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              visualDensity: VisualDensity.compact,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(Localization.get('turntableSpeed'),
+            style: const TextStyle(fontSize: 12)),
+        Row(
+          children: [
+            Expanded(
+              child: Slider(
+                value: turntableSpeed,
+                min: -60,
+                max: 60,
+                divisions: 120,
+                onChanged: (value) {
+                  onTurntableSpeedChanged(value);
+                  if (turntableEnabled) {
+                    js.setTurntableSpeed(value.toJS);
+                  }
+                },
+              ),
+            ),
+            SizedBox(
+              width: 44,
+              child: Text(
+                '${turntableSpeed.round()}°/s',
+                style: const TextStyle(fontSize: 12),
+              ),
+            ),
+          ],
         ),
       ],
     );

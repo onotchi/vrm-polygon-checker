@@ -68,6 +68,10 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   bool _antialiasEnabled = false;
   double _cameraFov = 45.0;
 
+  // Turntable
+  bool _turntableEnabled = false;
+  double _turntableSpeed = 15.0;
+
   // Panel width
   double _infoPanelWidth = 320;
   static const double _settingsPanelWidth = 200;
@@ -329,6 +333,12 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
               onAntialiasChanged: (value) => setState(() => _antialiasEnabled = value),
               onLanguageChanged: () => setState(() {}),
               onHidePanels: () => _setPanelsVisible(false),
+              turntableEnabled: _turntableEnabled,
+              turntableSpeed: _turntableSpeed,
+              onTurntableEnabledChanged: (value) =>
+                  setState(() => _turntableEnabled = value),
+              onTurntableSpeedChanged: (value) =>
+                  setState(() => _turntableSpeed = value),
             ),
           CanvasArea(
             onTap: _panelsVisible ? null : () => _setPanelsVisible(true),

@@ -82,6 +82,12 @@ external JSString highlightMesh(JSString meshName);
 @JS('setCameraFov')
 external JSString setCameraFov(JSNumber fov);
 
+@JS('resetCamera')
+external JSString resetCamera();
+
+@JS('setTurntableSpeed')
+external JSString setTurntableSpeed(JSNumber degreesPerSecond);
+
 // Display settings
 @JS('setGridVisible')
 external JSString setGridVisible(JSBoolean visible);

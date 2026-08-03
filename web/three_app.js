@@ -90,6 +90,10 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 1, 0);
 controls.update();
 
+// Turntable: orbits the camera around controls.target on the Y axis
+const TURNTABLE_AXIS = new THREE.Vector3(0, 1, 0);
+let turntableSpeed = 0; // degrees per second, 0 = stopped
+
 // Lighting
 const ambientLight = new THREE.AmbientLight(0xffffff, 2.0);
 scene.add(ambientLight);
@@ -451,6 +455,14 @@ function animate() {
     }
   }
 
+  // Turntable: keep the current height and distance, just swing around the target
+  if (turntableSpeed !== 0) {
+    const angle = turntableSpeed * Math.PI / 180 * deltaTime;
+    const offset = camera.position.clone().sub(controls.target);
+    offset.applyAxisAngle(TURNTABLE_AXIS, angle);
+    camera.position.copy(controls.target).add(offset);
+  }
+
   controls.update();
 
   // Render with or without FXAA
@@ -746,6 +758,20 @@ window.setCameraFov = function(fov) {
   camera.fov = fov;
   camera.updateProjectionMatrix();
   return JSON.stringify({ success: true, fov: fov });
+};
+
+// Reset the camera back to its initial front view (FOV is left untouched)
+window.resetCamera = function() {
+  controls.target.set(0, 1, 0);
+  camera.position.set(0, 1, 3);
+  controls.update();
+  return JSON.stringify({ success: true });
+};
+
+// Turntable speed in degrees per second. Sign selects the direction, 0 stops.
+window.setTurntableSpeed = function(degreesPerSecond) {
+  turntableSpeed = degreesPerSecond;
+  return JSON.stringify({ success: true, speed: degreesPerSecond });
 };
 
 // Grid and shadow visibility controls
