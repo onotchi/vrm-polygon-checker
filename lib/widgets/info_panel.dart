@@ -178,7 +178,10 @@ class InfoPanel extends StatelessWidget {
                     ),
                   ],
                 ),
-                const _AnimationSeekBar(),
+                // Each load hands over a fresh map, so keying on it rebuilds
+                // the seek bar for the new clip. Without a key the state is
+                // reused and keeps showing the previous clip's duration.
+                _AnimationSeekBar(key: ValueKey(animationInfo)),
               ],
             ),
           ),
@@ -629,7 +632,7 @@ class InfoPanel extends StatelessWidget {
 
 // Animation seek bar widget with periodic updates
 class _AnimationSeekBar extends StatefulWidget {
-  const _AnimationSeekBar();
+  const _AnimationSeekBar({super.key});
 
   @override
   State<_AnimationSeekBar> createState() => _AnimationSeekBarState();

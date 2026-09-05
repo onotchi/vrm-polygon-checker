@@ -210,9 +210,14 @@ function disposeClonedMaterial(material) {
 // of the scene is not enough: three.js keeps geometries, materials and textures
 // alive until they are disposed explicitly.
 function disposeVRM(vrm) {
-  // Wireframed meshes keep their real material off the scene graph, where
-  // deepDispose cannot reach it. Put each one back, dropping the clone that
-  // stood in for it, so everything is disposed exactly once.
+  // Highlights and wireframes both keep the real material off the scene graph,
+  // where deepDispose cannot reach it. Unwind them innermost first, since a
+  // highlight can be sitting on top of a wireframe, so that every material ends
+  // up disposed exactly once and no fade outlives the model it was drawn on.
+  for (const mesh of [...activeHighlights.keys()]) {
+    cancelHighlight(mesh);
+  }
+
   for (const [mesh, material] of wireframeOriginalMaterials) {
     disposeClonedMaterial(mesh.material);
     mesh.material = material;
@@ -948,6 +953,10 @@ window.showWireframe = function(meshName) {
         return;
       }
 
+      // A highlight in progress has the real material set aside; put it back so
+      // the wireframe is built from it and not from the flash clone.
+      cancelHighlight(object);
+
       // Store original materials and replace with cloned wireframe materials
       if (Array.isArray(object.material)) {
         wireframeOriginalMaterials.set(object, object.material);
@@ -972,6 +981,26 @@ window.showWireframe = function(meshName) {
   return JSON.stringify({ error: 'Mesh not found: ' + meshName });
 };
 
+// Meshes that are flashing right now. A highlight swaps the real material off
+// the mesh for the duration of the fade, so anything that reads or replaces
+// object.material has to unwind the highlight first, or it captures a clone as
+// if it were the real thing.
+const activeHighlights = new Map();
+const HIGHLIGHT_COLOR = new THREE.Color(0.5, 0.8, 1.0); // Light blue glow
+
+// End a running highlight: put back the material it replaced and drop the
+// clone. Does nothing if the mesh is not being highlighted.
+function cancelHighlight(mesh) {
+  const highlight = activeHighlights.get(mesh);
+  if (!highlight) {
+    return;
+  }
+  activeHighlights.delete(mesh);
+  cancelAnimationFrame(highlight.frameId);
+  mesh.material = highlight.originalMaterial;
+  disposeClonedMaterial(highlight.clonedMaterial);
+}
+
 // Highlight mesh with emissive flash
 window.highlightMesh = function(meshName) {
   if (!currentVRM) {
@@ -983,6 +1012,12 @@ window.highlightMesh = function(meshName) {
   currentVRM.scene.traverse((object) => {
     if (object.isMesh && object.name === meshName) {
       found = true;
+
+      // Unwind any fade still running on this mesh. Without this, a second
+      // click within 300ms would take the first click's clone for the real
+      // material, and the two fades finishing in order would leave a disposed
+      // clone on the mesh.
+      cancelHighlight(object);
 
       // Clone materials to avoid affecting other meshes sharing the same material
       const originalMaterials = object.material;
@@ -998,9 +1033,16 @@ window.highlightMesh = function(meshName) {
       // Set bright emissive on cloned materials
       clonedMaterials.forEach(m => {
         if (m.emissive) {
-          m.emissive.setRGB(0.5, 0.8, 1.0); // Light blue glow
+          m.emissive.copy(HIGHLIGHT_COLOR);
         }
       });
+
+      const highlight = {
+        originalMaterial: originalMaterials,
+        clonedMaterial: object.material,
+        frameId: 0,
+      };
+      activeHighlights.set(object, highlight);
 
       // Fade back to original over 300ms, then restore original materials
       const startTime = performance.now();
@@ -1013,7 +1055,7 @@ window.highlightMesh = function(meshName) {
         clonedMaterials.forEach((m, i) => {
           if (m.emissive && originalEmissives[i]) {
             m.emissive.lerpColors(
-              new THREE.Color(0.5, 0.8, 1.0),
+              HIGHLIGHT_COLOR,
               originalEmissives[i],
               progress
             );
@@ -1021,15 +1063,14 @@ window.highlightMesh = function(meshName) {
         });
 
         if (progress < 1) {
-          requestAnimationFrame(fadeEmissive);
+          highlight.frameId = requestAnimationFrame(fadeEmissive);
         } else {
           // Animation complete - restore original materials and dispose clones
-          object.material = originalMaterials;
-          clonedMaterials.forEach(m => m.dispose());
+          cancelHighlight(object);
         }
       }
 
-      requestAnimationFrame(fadeEmissive);
+      highlight.frameId = requestAnimationFrame(fadeEmissive);
     }
   });
 
@@ -1049,6 +1090,10 @@ window.clearWireframe = function(meshName) {
 
   currentVRM.scene.traverse((object) => {
     if (object.isMesh && object.name === meshName && wireframeOriginalMaterials.has(object)) {
+      // Same as above: a running highlight would otherwise put its clone of the
+      // wireframe material back on the mesh after this restore.
+      cancelHighlight(object);
+
       // Restore original materials and let go of the wireframe clones
       const wireframeMaterial = object.material;
       object.material = wireframeOriginalMaterials.get(object);
