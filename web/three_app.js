@@ -4,7 +4,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { VRMLoaderPlugin } from '@pixiv/three-vrm';
+import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
 import { VRMAnimationLoaderPlugin, createVRMAnimationClip } from '@pixiv/three-vrm-animation';
 
 // Panel widths for Flutter UI (updated from Flutter via setPanelLayout)
@@ -191,9 +191,41 @@ window.loadVRMFromBuffer = async function(arrayBuffer, fileName) {
   }
 };
 
+// Dispose a material that was cloned off a live one. Only the material itself
+// is released here: its textures are shared with the original still in use, and
+// disposing those would blank out the mesh that kept them.
+function disposeClonedMaterial(material) {
+  if (Array.isArray(material)) {
+    material.forEach((m) => m.dispose());
+  } else if (material) {
+    material.dispose();
+  }
+}
+
+// Release the GPU resources of a VRM that is no longer displayed. Taking it out
+// of the scene is not enough: three.js keeps geometries, materials and textures
+// alive until they are disposed explicitly.
+function disposeVRM(vrm) {
+  // Wireframed meshes keep their real material off the scene graph, where
+  // deepDispose cannot reach it. Put each one back, dropping the clone that
+  // stood in for it, so everything is disposed exactly once.
+  for (const [mesh, material] of wireframeOriginalMaterials) {
+    disposeClonedMaterial(mesh.material);
+    mesh.material = material;
+  }
+  wireframeOriginalMaterials.clear();
+
+  VRMUtils.deepDispose(vrm.scene);
+}
+
 // Common VRM setup
 function setupVRM(gltf, fileName = null) {
+  // A glTF without the VRM extension parses fine but has no vrm here. Bail out
+  // before touching any state, so a wrong file leaves the current model alone.
   const vrm = gltf.userData.vrm;
+  if (!vrm) {
+    throw new Error('No VRM data found in this file.');
+  }
 
   // Stop current animation (but keep vrmAnimation for reapply)
   if (currentAction) {
@@ -204,15 +236,14 @@ function setupVRM(gltf, fileName = null) {
     currentMixer = null;
   }
 
-  // Clear wireframe state
-  wireframeOriginalMaterials.clear();
-
-  if (currentVRM) {
-    scene.remove(currentVRM.scene);
-  }
-
+  const previousVRM = currentVRM;
   currentVRM = vrm;
   scene.add(vrm.scene);
+
+  if (previousVRM) {
+    scene.remove(previousVRM.scene);
+    disposeVRM(previousVRM);
+  }
 
   // Show shadow when VRM is loaded
   shadowMesh.visible = true;
@@ -986,9 +1017,11 @@ window.clearWireframe = function(meshName) {
 
   currentVRM.scene.traverse((object) => {
     if (object.isMesh && object.name === meshName && wireframeOriginalMaterials.has(object)) {
-      // Restore original materials
+      // Restore original materials and let go of the wireframe clones
+      const wireframeMaterial = object.material;
       object.material = wireframeOriginalMaterials.get(object);
       wireframeOriginalMaterials.delete(object);
+      disposeClonedMaterial(wireframeMaterial);
       found = true;
     }
   });
