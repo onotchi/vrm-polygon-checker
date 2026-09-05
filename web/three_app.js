@@ -506,19 +506,34 @@ setupComposer(scene, camera);
 
 animate();
 
+// The ratio the renderer and composer are currently set to. Both of their
+// setPixelRatio() methods re-run setSize() internally, so applying one costs a
+// spare render target resize. Dragging the panel edge calls through here every
+// frame while the ratio stays put, hence tracking it rather than setting it
+// unconditionally.
+let appliedPixelRatio = renderer.getPixelRatio();
+
 // Apply the current canvas size to camera / renderer / post-processing
 function applyCanvasSize() {
   const size = getCanvasSize();
   camera.aspect = size.width / size.height;
   camera.updateProjectionMatrix();
-  // Re-read the pixel ratio here as well: it is not fixed for the life of the
-  // page, and rendering at a stale one leaves the canvas soft or oversized.
-  renderer.setPixelRatio(window.devicePixelRatio);
+
+  // The pixel ratio is not fixed for the life of the page, and rendering at a
+  // stale one leaves the canvas soft or oversized.
+  const pixelRatio = window.devicePixelRatio;
+  if (pixelRatio !== appliedPixelRatio) {
+    appliedPixelRatio = pixelRatio;
+    renderer.setPixelRatio(pixelRatio);
+    if (composer) {
+      // The composer keeps its own copy of the ratio and multiplies by that
+      // copy in setSize(), so it has to be told separately.
+      composer.setPixelRatio(pixelRatio);
+    }
+  }
+
   renderer.setSize(size.width, size.height);
   if (composer) {
-    // The composer copied the pixel ratio when it was built and multiplies by
-    // that copy in setSize(), so it has to be told about the new one first.
-    composer.setPixelRatio(renderer.getPixelRatio());
     composer.setSize(size.width, size.height);
   }
 }
