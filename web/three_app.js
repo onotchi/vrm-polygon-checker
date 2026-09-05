@@ -148,6 +148,10 @@ shadowMesh.position.y = 0.001;
 shadowMesh.visible = false; // Hidden until VRM is loaded
 scene.add(shadowMesh);
 
+// Mirrors the Flutter side switch, so loading a VRM can restore what the user
+// chose instead of forcing the shadow back on. Matches its default there.
+let shadowEnabled = true;
+
 // VRM version detection helper
 // Returns: { isVRM1: boolean, versionString: string }
 function getVRMVersion(vrm) {
@@ -245,8 +249,8 @@ function setupVRM(gltf, fileName = null) {
     disposeVRM(previousVRM);
   }
 
-  // Show shadow when VRM is loaded
-  shadowMesh.visible = true;
+  // Show shadow when VRM is loaded, unless it has been switched off
+  shadowMesh.visible = shadowEnabled;
 
   // Rotate VRM to face camera
   // VRM 0.x: default facing -Z, need 180 degree rotation
@@ -321,7 +325,11 @@ function getVRMInfo(vrm, gltf, fileName = null) {
     if (object.isMesh) {
       const geometry = object.geometry;
       const vertices = geometry.attributes.position?.count || 0;
-      const triangles = geometry.index ? Math.floor(geometry.index.count / 3) : 0;
+      // Non-indexed geometry has no index buffer: every three consecutive
+      // positions form one triangle.
+      const triangles = geometry.index
+        ? Math.floor(geometry.index.count / 3)
+        : Math.floor(vertices / 3);
 
       // Count materials for this mesh
       let materialCount = 1;
@@ -498,6 +506,9 @@ function applyCanvasSize() {
   const size = getCanvasSize();
   camera.aspect = size.width / size.height;
   camera.updateProjectionMatrix();
+  // Re-read the pixel ratio here as well: it is not fixed for the life of the
+  // page, and rendering at a stale one leaves the canvas soft or oversized.
+  renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(size.width, size.height);
   if (composer) {
     composer.setSize(size.width, size.height);
@@ -506,6 +517,26 @@ function applyCanvasSize() {
 
 // Handle resize
 window.addEventListener('resize', applyCanvasSize);
+
+// devicePixelRatio also changes when the window moves to a monitor with a
+// different DPI, which does not necessarily fire resize. A media query bound to
+// the current ratio does fire, so re-bind it to the new ratio each time.
+let pixelRatioQuery = null;
+
+function handlePixelRatioChange() {
+  applyCanvasSize();
+  watchPixelRatio();
+}
+
+function watchPixelRatio() {
+  if (pixelRatioQuery) {
+    pixelRatioQuery.removeEventListener('change', handlePixelRatioChange);
+  }
+  pixelRatioQuery = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+  pixelRatioQuery.addEventListener('change', handlePixelRatioChange);
+}
+
+watchPixelRatio();
 
 // Update canvas placement when Flutter shows/hides the side panels
 window.setPanelLayout = function(left, right) {
@@ -788,6 +819,7 @@ window.setGridVisible = function(visible) {
 };
 
 window.setShadowVisible = function(visible) {
+  shadowEnabled = visible;
   shadowMesh.visible = visible && currentVRM !== null;
   return JSON.stringify({ success: true, visible: visible });
 };

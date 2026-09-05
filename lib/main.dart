@@ -101,6 +101,14 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
     );
   }
 
+  // Dragging the panel edge changes how much room is left for the canvas, so
+  // the JS side needs the new width to keep the canvas and camera aspect in
+  // step with the Flutter layout.
+  void _setInfoPanelWidth(double width) {
+    setState(() => _infoPanelWidth = width);
+    js.setPanelLayout(_settingsPanelWidth.toJS, width.toJS);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -386,7 +394,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                 onClearAllWireframes: _clearAllWireframes,
                 onSortChanged: _toggleMeshSort,
                 onSortReset: _resetMeshSort,
-                onWidthChanged: (value) => setState(() => _infoPanelWidth = value),
+                onWidthChanged: _setInfoPanelWidth,
               ),
             ),
         ],
