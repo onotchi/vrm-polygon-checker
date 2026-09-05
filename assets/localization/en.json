@@ -49,5 +49,8 @@
   "previousFrame": "Previous frame",
   "nextFrame": "Next frame",
   "play": "Play",
-  "pause": "Pause"
+  "pause": "Pause",
+  "viewerInitFailed": "Could not start the 3D viewer",
+  "viewerInitFailedDetail": "The rendering library failed to load. Check your network connection and reload the page.",
+  "reload": "Reload"
 }

@@ -516,6 +516,9 @@ function applyCanvasSize() {
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(size.width, size.height);
   if (composer) {
+    // The composer copied the pixel ratio when it was built and multiplies by
+    // that copy in setSize(), so it has to be told about the new one first.
+    composer.setPixelRatio(renderer.getPixelRatio());
     composer.setSize(size.width, size.height);
   }
 }

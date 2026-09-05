@@ -49,5 +49,8 @@
   "previousFrame": "前のコマ",
   "nextFrame": "次のコマ",
   "play": "再生",
-  "pause": "一時停止"
+  "pause": "一時停止",
+  "viewerInitFailed": "3Dビューアを初期化できませんでした",
+  "viewerInitFailedDetail": "描画ライブラリの読み込みに失敗しました。ネットワーク接続を確認して、再読み込みしてください。",
+  "reload": "再読み込み"
 }

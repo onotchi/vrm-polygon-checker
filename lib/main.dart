@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:web/web.dart' as web;
 import 'dart:js_interop';
 import 'dart:convert';
 import 'localization.dart';
@@ -17,19 +18,24 @@ void main() async {
 
   // three_app.js imports three.js from a CDN while Flutter boots from a local
   // script, so the JS side is not necessarily there when the first widget calls
-  // into it. Wait for it, but do not hold the app hostage if the CDN never
-  // answers: starting up without 3D beats showing a blank page forever.
+  // into it. Wait for it before building any UI that talks to it.
+  var isThreeAppReady = true;
   try {
     await js.threeAppReady.toDart.timeout(_threeAppReadyTimeout);
   } catch (e) {
-    debugPrint('three_app.js was not ready in time: $e');
+    // Either the script failed outright or it never finished. Both leave every
+    // window function undefined, so the viewer cannot be built at all.
+    isThreeAppReady = false;
+    debugPrint('three_app.js is unavailable: $e');
   }
 
-  runApp(const MyApp());
+  runApp(MyApp(isThreeAppReady: isThreeAppReady));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, required this.isThreeAppReady});
+
+  final bool isThreeAppReady;
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +46,56 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         textTheme: GoogleFonts.notoSansJpTextTheme(),
       ),
-      home: const VRMViewerPage(),
+      home: isThreeAppReady
+          ? const VRMViewerPage()
+          : const ThreeAppUnavailablePage(),
+    );
+  }
+}
+
+/// Shown when three_app.js never became available. Every control in the viewer
+/// calls into it, so there is nothing safe to offer here but a way to retry.
+class ThreeAppUnavailablePage extends StatelessWidget {
+  const ThreeAppUnavailablePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.cloud_off, size: 48, color: Colors.grey.shade400),
+                const SizedBox(height: 16),
+                Text(
+                  Localization.get('viewerInitFailed'),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  Localization.get('viewerInitFailedDetail'),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+                ),
+                const SizedBox(height: 24),
+                FilledButton.icon(
+                  onPressed: () => web.window.location.reload(),
+                  icon: const Icon(Icons.refresh),
+                  label: Text(Localization.get('reload')),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
