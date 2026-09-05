@@ -47,6 +47,16 @@
 <body>
   <canvas id="three-canvas"></canvas>
 
+  <!-- three_app.js waits on CDN imports while flutter_bootstrap.js loads
+       locally and async, so Flutter can reach the window functions below
+       before they exist. Both sides synchronise on this promise, which is
+       created here so it is in place no matter which script wins the race. -->
+  <script>
+    window.threeAppReady = new Promise((resolve) => {
+      window.resolveThreeAppReady = resolve;
+    });
+  </script>
+
   <!-- Three.js & three-vrm (ES Modules) -->
   <script type="importmap">
     {

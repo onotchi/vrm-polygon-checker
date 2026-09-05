@@ -1033,3 +1033,6 @@ window.clearWireframe = function(meshName) {
 };
 
 console.log('Three.js app initialized!');
+
+// Every window function above is installed by now, so Flutter is free to start.
+window.resolveThreeAppReady();

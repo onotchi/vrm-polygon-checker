@@ -1,5 +1,9 @@
 import 'dart:js_interop';
 
+// Startup: resolves once three_app.js has installed the functions below
+@JS('threeAppReady')
+external JSPromise get threeAppReady;
+
 // File picker
 @JS('openFilePicker')
 external void openFilePicker();

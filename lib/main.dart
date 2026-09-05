@@ -8,9 +8,23 @@ import 'widgets/settings_panel.dart';
 import 'widgets/info_panel.dart';
 import 'widgets/canvas_area.dart';
 
+/// Give three_app.js this long to finish importing before starting anyway.
+const _threeAppReadyTimeout = Duration(seconds: 10);
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Localization.load(AppLanguage.ja);
+
+  // three_app.js imports three.js from a CDN while Flutter boots from a local
+  // script, so the JS side is not necessarily there when the first widget calls
+  // into it. Wait for it, but do not hold the app hostage if the CDN never
+  // answers: starting up without 3D beats showing a blank page forever.
+  try {
+    await js.threeAppReady.toDart.timeout(_threeAppReadyTimeout);
+  } catch (e) {
+    debugPrint('three_app.js was not ready in time: $e');
+  }
+
   runApp(const MyApp());
 }
 
