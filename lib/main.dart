@@ -6,7 +6,9 @@ import 'dart:convert';
 import 'bridge/animation_bridge.dart';
 import 'bridge/fullscreen_bridge.dart';
 import 'bridge/js_animation_bridge.dart';
+import 'bridge/js_expression_bridge.dart';
 import 'bridge/js_fullscreen_bridge.dart';
+import 'expression_controller.dart';
 import 'localization.dart';
 import 'js_interop.dart' as js;
 import 'widgets/settings_panel.dart';
@@ -16,6 +18,7 @@ import 'widgets/canvas_area.dart';
 /// The one place that binds the widget-facing interfaces to the JS viewer.
 const AnimationBridge _animationBridge = JsAnimationBridge();
 const FullscreenBridge _fullscreenBridge = JsFullscreenBridge();
+const JsExpressionBridge _expressionBridge = JsExpressionBridge();
 
 /// Give three_app.js this long to finish importing before starting anyway.
 const _threeAppReadyTimeout = Duration(seconds: 10);
@@ -132,8 +135,10 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   Map<String, dynamic>? _animationInfo;
   bool _isLoadingAnimation = false;
 
-  // Expression state
-  String? _activeExpression;
+  // Expression state, owned by the controller so the "turn the old one down
+  // first" rule lives in one testable place.
+  final ExpressionController _expressions =
+      ExpressionController(_expressionBridge);
 
   // Mesh state
   final Set<String> _hiddenMeshes = {};
@@ -204,7 +209,8 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
       if (result['error'] == null) {
         _vrmInfo = result;
         _errorMessage = null;
-        _activeExpression = null;
+        // The new model has none of the old model's expressions applied.
+        _expressions.forget();
         _hiddenMeshes.clear();
         _focusedMesh = null;
         _wireframeMeshes.clear();
@@ -342,22 +348,12 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
     });
   }
 
-  /// Applies [name], or clears the current expression when it is null. Only one
-  /// expression is applied at a time, so the previous one always goes back to
-  /// zero first, whether we are switching or clearing.
   void _handleExpressionSelected(String? name) {
-    if (_activeExpression != null) {
-      js.setExpression(_activeExpression!.toJS, (0.0).toJS);
-    }
-    if (name != null) {
-      js.setExpression(name.toJS, (1.0).toJS);
-    }
-    setState(() => _activeExpression = name);
+    setState(() => _expressions.select(name));
   }
 
   void _handleExpressionReset() {
-    js.resetExpressions();
-    setState(() => _activeExpression = null);
+    setState(() => _expressions.reset());
   }
 
   void _handleMeshHighlight(String name) {
@@ -468,7 +464,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                 isLoading: _isLoading,
                 isLoadingAnimation: _isLoadingAnimation,
                 errorMessage: _errorMessage,
-                activeExpression: _activeExpression,
+                activeExpression: _expressions.active,
                 focusedMesh: _focusedMesh,
                 wireframeMeshes: _wireframeMeshes,
                 hiddenMeshes: _hiddenMeshes,
