@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
 import 'dart:js_interop';
 import 'package:web/web.dart' as web;
 import '../localization.dart';
 import '../js_interop.dart' as js;
 import '../constants.dart';
+import '../bridge/fullscreen_bridge.dart';
+import 'settings_panel/fullscreen_button.dart';
 
 class SettingsPanel extends StatelessWidget {
   final double ambientIntensity;
@@ -28,6 +29,9 @@ class SettingsPanel extends StatelessWidget {
   final ValueChanged<bool> onTurntableEnabledChanged;
   final ValueChanged<double> onTurntableSpeedChanged;
 
+  /// Handed to the fullscreen button, which stays free of the JS layer.
+  final FullscreenBridge fullscreenBridge;
+
   const SettingsPanel({
     super.key,
     required this.ambientIntensity,
@@ -50,6 +54,7 @@ class SettingsPanel extends StatelessWidget {
     required this.onHidePanels,
     required this.onTurntableEnabledChanged,
     required this.onTurntableSpeedChanged,
+    required this.fullscreenBridge,
   });
 
   @override
@@ -260,7 +265,7 @@ class SettingsPanel extends StatelessWidget {
         // Not const: a const widget is the same instance on every rebuild, so
         // Flutter skips rebuilding it and its label would keep the wording from
         // whichever language was loaded first.
-        _FullscreenButton(),
+        FullscreenButton(bridge: fullscreenBridge),
         const SizedBox(height: 4),
         SizedBox(
           width: double.infinity,
@@ -454,69 +459,6 @@ class SettingsPanel extends StatelessWidget {
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             color: isSelected ? Colors.white : Colors.black87,
           ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Fullscreen toggle. Keeps its own state so it stays in sync when the user
-/// leaves fullscreen by pressing Esc or the browser's own shortcut.
-class _FullscreenButton extends StatefulWidget {
-  const _FullscreenButton();
-
-  @override
-  State<_FullscreenButton> createState() => _FullscreenButtonState();
-}
-
-class _FullscreenButtonState extends State<_FullscreenButton> {
-  bool _isFullscreen = false;
-  late final JSFunction _changeListener;
-
-  @override
-  void initState() {
-    super.initState();
-    _changeListener = ((web.Event event) => _syncState()).toJS;
-    web.document.addEventListener('fullscreenchange', _changeListener);
-    web.document.addEventListener('webkitfullscreenchange', _changeListener);
-    _syncState();
-  }
-
-  @override
-  void dispose() {
-    web.document.removeEventListener('fullscreenchange', _changeListener);
-    web.document.removeEventListener('webkitfullscreenchange', _changeListener);
-    super.dispose();
-  }
-
-  void _syncState() {
-    final result = jsonDecode(js.isFullscreen().toDart) as Map<String, dynamic>;
-    final value = result['fullscreen'] == true;
-    if (value != _isFullscreen) {
-      setState(() => _isFullscreen = value);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: () {
-          js.toggleFullscreen();
-          _syncState();
-        },
-        icon: Icon(
-          _isFullscreen ? Icons.fullscreen_exit : Icons.fullscreen,
-          size: 18,
-        ),
-        label: Text(
-          Localization.get(_isFullscreen ? 'exitFullscreen' : 'fullscreen'),
-          style: const TextStyle(fontSize: 12),
-        ),
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          visualDensity: VisualDensity.compact,
         ),
       ),
     );
