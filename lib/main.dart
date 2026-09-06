@@ -327,6 +327,24 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
     });
   }
 
+  /// Applies [name], or clears the current expression when it is null. Only one
+  /// expression is applied at a time, so the previous one always goes back to
+  /// zero first, whether we are switching or clearing.
+  void _handleExpressionSelected(String? name) {
+    if (_activeExpression != null) {
+      js.setExpression(_activeExpression!.toJS, (0.0).toJS);
+    }
+    if (name != null) {
+      js.setExpression(name.toJS, (1.0).toJS);
+    }
+    setState(() => _activeExpression = name);
+  }
+
+  void _handleExpressionReset() {
+    js.resetExpressions();
+    setState(() => _activeExpression = null);
+  }
+
   void _handleMeshHighlight(String name) {
     js.highlightMesh(name.toJS);
   }
@@ -443,7 +461,8 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                 onOpenFile: _openFile,
                 onOpenAnimation: _openAnimation,
                 onStopAnimation: _stopAnimation,
-                onExpressionChanged: (value) => setState(() => _activeExpression = value),
+                onExpressionSelected: _handleExpressionSelected,
+                onExpressionReset: _handleExpressionReset,
                 onMeshVisibilityChanged: _handleMeshVisibilityChanged,
                 onMeshFocusChanged: _handleMeshFocusChanged,
                 onMeshWireframeChanged: _handleMeshWireframeChanged,

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'dart:js_interop';
 import '../localization.dart';
 import '../js_interop.dart' as js;
+import 'info_panel/expression_controls.dart';
 import 'info_panel/mesh_inspector.dart';
 
 class InfoPanel extends StatelessWidget {
@@ -22,7 +23,8 @@ class InfoPanel extends StatelessWidget {
   final VoidCallback onOpenFile;
   final VoidCallback onOpenAnimation;
   final VoidCallback onStopAnimation;
-  final ValueChanged<String?> onExpressionChanged;
+  final ValueChanged<String?> onExpressionSelected;
+  final VoidCallback onExpressionReset;
   final ValueChanged<String> onMeshVisibilityChanged;
   final ValueChanged<String> onMeshFocusChanged;
   final ValueChanged<String> onMeshWireframeChanged;
@@ -52,7 +54,8 @@ class InfoPanel extends StatelessWidget {
     required this.onOpenFile,
     required this.onOpenAnimation,
     required this.onStopAnimation,
-    required this.onExpressionChanged,
+    required this.onExpressionSelected,
+    required this.onExpressionReset,
     required this.onMeshVisibilityChanged,
     required this.onMeshFocusChanged,
     required this.onMeshWireframeChanged,
@@ -273,7 +276,12 @@ class InfoPanel extends StatelessWidget {
           ),
         ],
         const Divider(),
-        _buildExpressionButtons(context),
+        ExpressionControls(
+          clips: vrmInfo!['blendShapeClips'] as List<dynamic>?,
+          activeExpression: activeExpression,
+          onSelected: onExpressionSelected,
+          onReset: onExpressionReset,
+        ),
       ],
     );
   }
@@ -324,77 +332,6 @@ class InfoPanel extends StatelessWidget {
           Text(value),
         ],
       ),
-    );
-  }
-
-  Widget _buildExpressionButtons(BuildContext context) {
-    final clips = vrmInfo!['blendShapeClips'] as List<dynamic>?;
-    if (clips == null || clips.isEmpty) {
-      return Text(
-        Localization.get('noExpressions'),
-        style: const TextStyle(color: Colors.grey, fontSize: 12),
-      );
-    }
-
-    return ExpansionTile(
-      title: Text('${Localization.get('expressions')} (${clips.length})', style: const TextStyle(fontWeight: FontWeight.bold)),
-      tilePadding: EdgeInsets.zero,
-      shape: const Border(),
-      collapsedShape: const Border(),
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              OutlinedButton(
-                onPressed: () {
-                  js.resetExpressions();
-                  onExpressionChanged(null);
-                },
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  minimumSize: Size.zero,
-                ),
-                child: Text(
-                  Localization.get('reset'),
-                  style: const TextStyle(fontSize: 11),
-                ),
-              ),
-              ...clips.map((clip) {
-                final name = clip as String;
-                final isActive = activeExpression == name;
-                return ElevatedButton(
-                  onPressed: () {
-                    if (isActive) {
-                      js.setExpression(name.toJS, (0.0).toJS);
-                      onExpressionChanged(null);
-                    } else {
-                      if (activeExpression != null) {
-                        js.setExpression(activeExpression!.toJS, (0.0).toJS);
-                      }
-                      js.setExpression(name.toJS, (1.0).toJS);
-                      onExpressionChanged(name);
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    minimumSize: Size.zero,
-                    backgroundColor: isActive
-                        ? Theme.of(context).colorScheme.primary
-                        : null,
-                    foregroundColor: isActive
-                        ? Theme.of(context).colorScheme.onPrimary
-                        : null,
-                  ),
-                  child: Text(name, style: const TextStyle(fontSize: 11)),
-                );
-              }),
-            ],
-          ),
-        ),
-      ],
     );
   }
 
