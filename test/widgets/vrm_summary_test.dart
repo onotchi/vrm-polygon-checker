@@ -36,11 +36,14 @@ Widget _wrap(
   );
 }
 
-/// The value shown next to [label] in the info table.
-String _valueFor(WidgetTester tester, String label) {
-  final row = find.ancestor(of: find.text(label), matching: find.byType(Row));
+/// The value shown on the info row identified by [labelKey]. Addressed by the
+/// row's key rather than by walking the layout, so it survives restyling.
+String _valueFor(WidgetTester tester, String labelKey) {
   final texts = tester.widgetList<Text>(
-    find.descendant(of: row.first, matching: find.byType(Text)),
+    find.descendant(
+      of: find.byKey(ValueKey('vrm-summary-$labelKey')),
+      matching: find.byType(Text),
+    ),
   );
   return texts.last.data!;
 }

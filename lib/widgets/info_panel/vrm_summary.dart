@@ -15,13 +15,18 @@ class VrmSummary extends StatelessWidget {
   final Map<String, dynamic> vrmInfo;
   final Set<String> hiddenMeshes;
 
-  Widget _infoRow(String label, String value) {
+  /// One label/value line. [labelKey] doubles as the localization key and as a
+  /// stable identity for the row, so tests can address a value without relying
+  /// on the surrounding layout.
+  Widget _infoRow(String labelKey, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
+        key: ValueKey('vrm-summary-$labelKey'),
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
+          Text(Localization.get(labelKey),
+              style: const TextStyle(fontWeight: FontWeight.w500)),
           Text(value),
         ],
       ),
@@ -50,17 +55,17 @@ class VrmSummary extends StatelessWidget {
       collapsedShape: const Border(),
       initiallyExpanded: true,
       children: [
-        _infoRow(Localization.get('name'), vrmInfo['name']),
-        _infoRow(Localization.get('author'), vrmInfo['author']),
+        _infoRow('name', vrmInfo['name']),
+        _infoRow('author', vrmInfo['author']),
         const Divider(),
-        _infoRow(Localization.get('vertices'), '${vrmInfo['vertexCount']}'),
-        _infoRow(Localization.get('triangles'), '$totalTriangles'),
-        _infoRow(Localization.get('trianglesVisible'), '$visibleTriangles'),
-        _infoRow(Localization.get('meshes'), '${vrmInfo['meshCount']}'),
+        _infoRow('vertices', '${vrmInfo['vertexCount']}'),
+        _infoRow('triangles', '$totalTriangles'),
+        _infoRow('trianglesVisible', '$visibleTriangles'),
+        _infoRow('meshes', '${vrmInfo['meshCount']}'),
         const Divider(),
-        _infoRow(Localization.get('bones'), '${vrmInfo['boneCount']}'),
-        _infoRow(Localization.get('materials'), '${vrmInfo['materialCount']}'),
-        _infoRow(Localization.get('textures'), '${vrmInfo['textureCount']}'),
+        _infoRow('bones', '${vrmInfo['boneCount']}'),
+        _infoRow('materials', '${vrmInfo['materialCount']}'),
+        _infoRow('textures', '${vrmInfo['textureCount']}'),
       ],
     );
   }

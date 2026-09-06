@@ -19,8 +19,14 @@ Widget _wrap({
   String? focusedMesh,
   ValueChanged<String>? onHighlight,
   ValueChanged<String>? onFocusChanged,
+  ValueChanged<String>? onVisibilityChanged,
+  ValueChanged<String>? onWireframeChanged,
+  ValueChanged<String>? onSortChanged,
+  VoidCallback? onSortReset,
   VoidCallback? onShowAll,
   VoidCallback? onHideAll,
+  VoidCallback? onWireframeAll,
+  VoidCallback? onClearAllWireframes,
 }) {
   return MaterialApp(
     home: Scaffold(
@@ -32,21 +38,26 @@ Widget _wrap({
           focusedMesh: focusedMesh,
           sortKey: sortKey,
           sortAscending: sortAscending,
-          onSortChanged: (_) {},
-          onSortReset: () {},
-          onVisibilityChanged: (_) {},
+          onSortChanged: onSortChanged ?? (_) {},
+          onSortReset: onSortReset ?? () {},
+          onVisibilityChanged: onVisibilityChanged ?? (_) {},
           onFocusChanged: onFocusChanged ?? (_) {},
-          onWireframeChanged: (_) {},
+          onWireframeChanged: onWireframeChanged ?? (_) {},
           onHighlight: onHighlight ?? (_) {},
           onShowAll: onShowAll ?? () {},
           onHideAll: onHideAll ?? () {},
-          onWireframeAll: () {},
-          onClearAllWireframes: () {},
+          onWireframeAll: onWireframeAll ?? () {},
+          onClearAllWireframes: onClearAllWireframes ?? () {},
         ),
       ),
     ),
   );
 }
+
+/// The innermost Row of the given mesh's list entry, which holds that row's
+/// own visibility and wireframe icons.
+Finder _rowOf(String meshName) =>
+    find.ancestor(of: find.text(meshName), matching: find.byType(Row)).first;
 
 /// Opens the collapsed tile so the mesh rows are reachable.
 Future<void> _expand(WidgetTester tester) async {
@@ -154,6 +165,55 @@ void main() {
       expect(hidden, 1);
       expect(shown, 0);
     });
+
+    testWidgets('reports show-all once every mesh is hidden', (tester) async {
+      var shown = 0;
+      var hidden = 0;
+
+      await tester.pumpWidget(_wrap(
+        hiddenMeshes: const {'Body', 'Hair', 'Face'},
+        onShowAll: () => shown++,
+        onHideAll: () => hidden++,
+      ));
+      await _expand(tester);
+
+      await tester.tap(find.text('showAll'));
+      expect(shown, 1);
+      expect(hidden, 0);
+    });
+
+    testWidgets('reports wireframe-all while some meshes are plain',
+        (tester) async {
+      var wireframed = 0;
+      var cleared = 0;
+
+      await tester.pumpWidget(_wrap(
+        onWireframeAll: () => wireframed++,
+        onClearAllWireframes: () => cleared++,
+      ));
+      await _expand(tester);
+
+      await tester.tap(find.text('wireframeOn'));
+      expect(wireframed, 1);
+      expect(cleared, 0);
+    });
+
+    testWidgets('reports clear-wireframes once every mesh is wireframed',
+        (tester) async {
+      var wireframed = 0;
+      var cleared = 0;
+
+      await tester.pumpWidget(_wrap(
+        wireframeMeshes: const {'Body', 'Hair', 'Face'},
+        onWireframeAll: () => wireframed++,
+        onClearAllWireframes: () => cleared++,
+      ));
+      await _expand(tester);
+
+      await tester.tap(find.text('wireframeOff'));
+      expect(cleared, 1);
+      expect(wireframed, 0);
+    });
   });
 
   group('MeshInspector row interaction', () {
@@ -184,6 +244,84 @@ void main() {
 
       expect(find.text('300 tris, 2 mats'), findsOneWidget);
       expect(find.text('100 tris, 1 mat'), findsOneWidget);
+    });
+
+    testWidgets('reports the mesh whose visibility icon was tapped',
+        (tester) async {
+      String? toggled;
+
+      await tester
+          .pumpWidget(_wrap(onVisibilityChanged: (name) => toggled = name));
+      await _expand(tester);
+
+      await tester.tap(find.descendant(
+        of: _rowOf('Hair'),
+        matching: find.byIcon(Icons.visibility),
+      ));
+      expect(toggled, 'Hair');
+    });
+
+    testWidgets('shows a struck-through eye for a hidden mesh', (tester) async {
+      await tester.pumpWidget(_wrap(hiddenMeshes: const {'Hair'}));
+      await _expand(tester);
+
+      expect(
+        find.descendant(
+          of: _rowOf('Hair'),
+          matching: find.byIcon(Icons.visibility_off),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: _rowOf('Body'),
+          matching: find.byIcon(Icons.visibility),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('reports the mesh whose wireframe icon was tapped',
+        (tester) async {
+      String? toggled;
+
+      await tester
+          .pumpWidget(_wrap(onWireframeChanged: (name) => toggled = name));
+      await _expand(tester);
+
+      await tester.tap(find.descendant(
+        of: _rowOf('Face'),
+        matching: find.byIcon(Icons.grid_on),
+      ));
+      expect(toggled, 'Face');
+    });
+  });
+
+  group('MeshInspector sort controls', () {
+    testWidgets('reports the sort key of the tapped button', (tester) async {
+      final requested = <String>[];
+
+      await tester.pumpWidget(_wrap(onSortChanged: requested.add));
+
+      await tester.tap(find.byTooltip('sortByPolygons'));
+      await tester.tap(find.byTooltip('sortByName'));
+
+      expect(requested, ['triangles', 'name']);
+    });
+
+    testWidgets('reports a sort reset separately', (tester) async {
+      var resets = 0;
+      final requested = <String>[];
+
+      await tester.pumpWidget(_wrap(
+        onSortChanged: requested.add,
+        onSortReset: () => resets++,
+      ));
+
+      await tester.tap(find.byTooltip('sortReset'));
+
+      expect(resets, 1);
+      expect(requested, isEmpty);
     });
   });
 }
