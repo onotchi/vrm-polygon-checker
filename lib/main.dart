@@ -8,7 +8,9 @@ import 'bridge/fullscreen_bridge.dart';
 import 'bridge/js_animation_bridge.dart';
 import 'bridge/js_expression_bridge.dart';
 import 'bridge/js_fullscreen_bridge.dart';
+import 'bridge/js_mesh_bridge.dart';
 import 'expression_controller.dart';
+import 'mesh_controller.dart';
 import 'localization.dart';
 import 'js_interop.dart' as js;
 import 'widgets/settings_panel.dart';
@@ -19,6 +21,7 @@ import 'widgets/canvas_area.dart';
 const AnimationBridge _animationBridge = JsAnimationBridge();
 const FullscreenBridge _fullscreenBridge = JsFullscreenBridge();
 const JsExpressionBridge _expressionBridge = JsExpressionBridge();
+const JsMeshBridge _meshBridge = JsMeshBridge();
 
 /// Give three_app.js this long to finish importing before starting anyway.
 const _threeAppReadyTimeout = Duration(seconds: 10);
@@ -140,11 +143,9 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   final ExpressionController _expressions =
       ExpressionController(_expressionBridge);
 
-  // Mesh state
-  final Set<String> _hiddenMeshes = {};
-  String? _focusedMesh;
-  Set<String>? _hiddenMeshesBeforeFocus; // Store hidden state before focus
-  final Set<String> _wireframeMeshes = {};
+  // Mesh state, owned by the controller so the focus bookkeeping lives in one
+  // testable place.
+  final MeshController _meshes = MeshController(_meshBridge);
   String _meshSortKey = 'none';
   bool _meshSortAscending = true;
 
@@ -219,9 +220,8 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
         if (animation != null) {
           _animationInfo = Map<String, dynamic>.from(animation);
         }
-        _hiddenMeshes.clear();
-        _focusedMesh = null;
-        _wireframeMeshes.clear();
+        // None of the old model's meshes exist on the new one.
+        _meshes.forget();
         _meshSortKey = 'none';
         _meshSortAscending = true;
       } else {
@@ -302,58 +302,20 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
     });
   }
 
+  /// Every mesh name in the loaded model. The controller needs it to know what
+  /// to hide when focusing, and what to put back when the focus is lifted.
+  List<String> get _allMeshNames {
+    final meshes = _vrmInfo?['meshDetails'] as List?;
+    if (meshes == null) return const [];
+    return [for (final m in meshes) m['name'] as String];
+  }
+
   void _handleMeshVisibilityChanged(String name) {
-    final isHidden = _hiddenMeshes.contains(name);
-    final newVisible = isHidden;
-    js.setMeshVisibility(name.toJS, newVisible.toJS);
-    setState(() {
-      if (newVisible) {
-        _hiddenMeshes.remove(name);
-      } else {
-        _hiddenMeshes.add(name);
-      }
-    });
+    setState(() => _meshes.toggleVisibility(name));
   }
 
   void _handleMeshFocusChanged(String name) {
-    setState(() {
-      if (_focusedMesh == name) {
-        // Unfocus: restore previous hidden state
-        _focusedMesh = null;
-        _hiddenMeshes.clear();
-        if (_hiddenMeshesBeforeFocus != null) {
-          _hiddenMeshes.addAll(_hiddenMeshesBeforeFocus!);
-          // Restore visibility in JS
-          final meshes = _vrmInfo?['meshDetails'] as List?;
-          if (meshes != null) {
-            for (final m in meshes) {
-              final meshName = m['name'] as String;
-              final shouldBeVisible = !_hiddenMeshes.contains(meshName);
-              js.setMeshVisibility(meshName.toJS, shouldBeVisible.toJS);
-            }
-          }
-        }
-        _hiddenMeshesBeforeFocus = null;
-      } else {
-        // Focus: save current hidden state and show only this mesh
-        if (_focusedMesh == null) {
-          // Only save if not already focusing (switching focus keeps original state)
-          _hiddenMeshesBeforeFocus = Set.from(_hiddenMeshes);
-        }
-        js.focusMesh(name.toJS);
-        _focusedMesh = name;
-        _hiddenMeshes.clear();
-        final meshes = _vrmInfo?['meshDetails'] as List?;
-        if (meshes != null) {
-          for (final m in meshes) {
-            final meshName = m['name'] as String;
-            if (meshName != name) {
-              _hiddenMeshes.add(meshName);
-            }
-          }
-        }
-      }
-    });
+    setState(() => _meshes.toggleFocus(name, _allMeshNames));
   }
 
   void _handleExpressionSelected(String? name) {
@@ -365,66 +327,27 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   }
 
   void _handleMeshHighlight(String name) {
-    js.highlightMesh(name.toJS);
+    _meshes.highlight(name);
   }
 
   void _handleMeshWireframeChanged(String name) {
-    setState(() {
-      if (_wireframeMeshes.contains(name)) {
-        js.clearWireframe(name.toJS);
-        _wireframeMeshes.remove(name);
-      } else {
-        js.showWireframe(name.toJS);
-        _wireframeMeshes.add(name);
-      }
-    });
+    setState(() => _meshes.toggleWireframe(name));
   }
 
   void _showAllMeshes() {
-    setState(() {
-      _hiddenMeshes.clear();
-      _focusedMesh = null;
-      _hiddenMeshesBeforeFocus = null;
-    });
-    js.showAllMeshes();
+    setState(() => _meshes.showAll());
   }
 
   void _hideAllMeshes() {
-    final meshes = _vrmInfo?['meshDetails'] as List?;
-    if (meshes == null) return;
-    setState(() {
-      _focusedMesh = null;
-      _hiddenMeshesBeforeFocus = null;
-      _hiddenMeshes.clear();
-      for (final m in meshes) {
-        final name = m['name'] as String;
-        js.setMeshVisibility(name.toJS, false.toJS);
-        _hiddenMeshes.add(name);
-      }
-    });
+    setState(() => _meshes.hideAll(_allMeshNames));
   }
 
   void _wireframeAllMeshes() {
-    final meshes = _vrmInfo?['meshDetails'] as List?;
-    if (meshes == null) return;
-    setState(() {
-      for (final m in meshes) {
-        final name = m['name'] as String;
-        if (!_wireframeMeshes.contains(name)) {
-          js.showWireframe(name.toJS);
-          _wireframeMeshes.add(name);
-        }
-      }
-    });
+    setState(() => _meshes.wireframeAll(_allMeshNames));
   }
 
   void _clearAllWireframes() {
-    setState(() {
-      for (final name in _wireframeMeshes.toList()) {
-        js.clearWireframe(name.toJS);
-      }
-      _wireframeMeshes.clear();
-    });
+    setState(() => _meshes.clearAllWireframes());
   }
 
   @override
@@ -473,9 +396,9 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                 isLoadingAnimation: _isLoadingAnimation,
                 errorMessage: _errorMessage,
                 activeExpression: _expressions.active,
-                focusedMesh: _focusedMesh,
-                wireframeMeshes: _wireframeMeshes,
-                hiddenMeshes: _hiddenMeshes,
+                focusedMesh: _meshes.focused,
+                wireframeMeshes: _meshes.wireframed,
+                hiddenMeshes: _meshes.hidden,
                 meshSortKey: _meshSortKey,
                 meshSortAscending: _meshSortAscending,
                 onOpenFile: _openFile,
