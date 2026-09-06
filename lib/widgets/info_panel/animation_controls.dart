@@ -1,26 +1,26 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:js_interop';
 import 'package:flutter/material.dart';
+import '../../bridge/animation_bridge.dart';
 import '../../localization.dart';
-import '../../js_interop.dart' as js;
 
 /// The loaded animation: its file name, a stop button, and the seek bar with
 /// playback controls.
 ///
-/// Unlike the other panel sections this one does call into JS directly. The
-/// seek bar polls the playhead on a 50ms timer, which is state belonging to the
-/// widget itself -- hoisting it into the parent would put a Timer in main.dart
-/// for no gain. Keeping it here means every playback call lives in this file.
+/// The seek bar polls the playhead on a 50ms timer. That is state belonging to
+/// the widget itself, so it stays here rather than being hoisted into the
+/// parent, which would put a Timer in main.dart for no gain. Playback reaches
+/// the viewer through [bridge], so this file names no JS of its own.
 class AnimationControls extends StatelessWidget {
   const AnimationControls({
     super.key,
     required this.animationInfo,
     required this.onStop,
+    required this.bridge,
   });
 
   final Map<String, dynamic> animationInfo;
   final VoidCallback onStop;
+  final AnimationBridge bridge;
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +56,7 @@ class AnimationControls extends StatelessWidget {
                 // Each load hands over a fresh map, so keying on it rebuilds
                 // the seek bar for the new clip. Without a key the state is
                 // reused and keeps showing the previous clip's duration.
-                _AnimationSeekBar(key: ValueKey(animationInfo)),
+                _AnimationSeekBar(key: ValueKey(animationInfo), bridge: bridge),
               ],
             ),
           ),
@@ -68,7 +68,9 @@ class AnimationControls extends StatelessWidget {
 
 // Animation seek bar widget with periodic updates
 class _AnimationSeekBar extends StatefulWidget {
-  const _AnimationSeekBar({super.key});
+  const _AnimationSeekBar({super.key, required this.bridge});
+
+  final AnimationBridge bridge;
 
   @override
   State<_AnimationSeekBar> createState() => _AnimationSeekBarState();
@@ -96,41 +98,32 @@ class _AnimationSeekBarState extends State<_AnimationSeekBar> {
   }
 
   void _fetchDuration() {
-    final result = jsonDecode(js.getAnimationDuration().toDart);
-    if (result['duration'] != null) {
-      setState(() {
-        _duration = (result['duration'] as num).toDouble();
-      });
-    }
+    setState(() {
+      _duration = widget.bridge.getDuration();
+    });
   }
 
   void _fetchPausedState() {
-    final result = jsonDecode(js.isAnimationPaused().toDart);
-    if (result['paused'] != null) {
-      setState(() {
-        _isPaused = result['paused'] as bool;
-      });
-    }
+    setState(() {
+      _isPaused = widget.bridge.isPaused();
+    });
   }
 
   void _startTimer() {
     _timer = Timer.periodic(const Duration(milliseconds: 50), (_) {
       if (!_isDragging) {
-        final result = jsonDecode(js.getAnimationTime().toDart);
-        if (result['time'] != null) {
-          setState(() {
-            _currentTime = (result['time'] as num).toDouble();
-          });
-        }
+        setState(() {
+          _currentTime = widget.bridge.getCurrentTime();
+        });
       }
     });
   }
 
   void _togglePlayPause() {
     if (_isPaused) {
-      js.resumeAnimation();
+      widget.bridge.resume();
     } else {
-      js.pauseAnimation();
+      widget.bridge.pause();
     }
     setState(() {
       _isPaused = !_isPaused;
@@ -138,14 +131,14 @@ class _AnimationSeekBarState extends State<_AnimationSeekBar> {
   }
 
   void _stepForward() {
-    js.stepAnimationForward();
+    widget.bridge.stepForward();
     setState(() {
       _isPaused = true;
     });
   }
 
   void _stepBackward() {
-    js.stepAnimationBackward();
+    widget.bridge.stepBackward();
     setState(() {
       _isPaused = true;
     });
@@ -182,7 +175,7 @@ class _AnimationSeekBarState extends State<_AnimationSeekBar> {
               });
             },
             onChangeEnd: (value) {
-              js.setAnimationTime(value.toJS);
+              widget.bridge.seek(value);
               _isDragging = false;
             },
           ),

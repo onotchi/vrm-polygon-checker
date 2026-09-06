@@ -3,11 +3,16 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:web/web.dart' as web;
 import 'dart:js_interop';
 import 'dart:convert';
+import 'bridge/animation_bridge.dart';
+import 'bridge/js_animation_bridge.dart';
 import 'localization.dart';
 import 'js_interop.dart' as js;
 import 'widgets/settings_panel.dart';
 import 'widgets/info_panel.dart';
 import 'widgets/canvas_area.dart';
+
+/// The one place that binds the widget-facing interfaces to the JS viewer.
+const AnimationBridge _animationBridge = JsAnimationBridge();
 
 /// Give three_app.js this long to finish importing before starting anyway.
 const _threeAppReadyTimeout = Duration(seconds: 10);
@@ -481,6 +486,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                 onSortChanged: _toggleMeshSort,
                 onSortReset: _resetMeshSort,
                 onWidthChanged: _setInfoPanelWidth,
+                animationBridge: _animationBridge,
               ),
             ),
         ],

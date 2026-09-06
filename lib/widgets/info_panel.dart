@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../bridge/animation_bridge.dart';
 import '../localization.dart';
 import 'info_panel/animation_controls.dart';
 import 'info_panel/expression_controls.dart';
@@ -35,6 +36,10 @@ class InfoPanel extends StatelessWidget {
   final VoidCallback onSortReset;
   final ValueChanged<double> onWidthChanged;
 
+  /// Passed straight through to the playback controls. Kept as the interface so
+  /// this panel stays free of the JS layer.
+  final AnimationBridge animationBridge;
+
   const InfoPanel({
     super.key,
     required this.width,
@@ -65,6 +70,7 @@ class InfoPanel extends StatelessWidget {
     required this.onSortChanged,
     required this.onSortReset,
     required this.onWidthChanged,
+    required this.animationBridge,
   });
 
   @override
@@ -117,6 +123,7 @@ class InfoPanel extends StatelessWidget {
                           AnimationControls(
                             animationInfo: animationInfo!,
                             onStop: onStopAnimation,
+                            bridge: animationBridge,
                           ),
                         const SizedBox(height: 24),
                         _buildVrmInfoSection(context),
