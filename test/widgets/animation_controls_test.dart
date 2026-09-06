@@ -43,18 +43,35 @@ class FakeAnimationBridge implements AnimationBridge {
     paused = false;
   }
 
-  @override
-  void stepForward() => calls.add('stepForward');
+  // The viewer moves the playhead one frame and pauses, so the fake does too:
+  // a step that only recorded the call would let a test pass that the real
+  // bridge would fail.
+  static const _frame = 1 / 60;
 
   @override
-  void stepBackward() => calls.add('stepBackward');
+  void stepForward() {
+    calls.add('stepForward');
+    currentTime = (currentTime + _frame).clamp(0, duration);
+    paused = true;
+  }
+
+  @override
+  void stepBackward() {
+    calls.add('stepBackward');
+    currentTime = (currentTime - _frame).clamp(0, duration);
+    paused = true;
+  }
 }
 
-Widget _wrap(FakeAnimationBridge bridge, {VoidCallback? onStop}) {
+Widget _wrap(
+  FakeAnimationBridge bridge, {
+  VoidCallback? onStop,
+  Map<String, dynamic>? animationInfo,
+}) {
   return MaterialApp(
     home: Scaffold(
       body: AnimationControls(
-        animationInfo: const {'fileName': 'walk.vrma'},
+        animationInfo: animationInfo ?? const {'fileName': 'walk.vrma'},
         onStop: onStop ?? () {},
         bridge: bridge,
       ),
@@ -155,6 +172,50 @@ void main() {
 
       expect(bridge.seeks, hasLength(1));
       expect(bridge.seeks.single, greaterThan(0));
+    });
+
+    testWidgets('moves the playhead one frame when stepping', (tester) async {
+      final bridge = FakeAnimationBridge(duration: 10);
+      await tester.pumpWidget(_wrap(bridge));
+
+      await tester.tap(find.byIcon(Icons.skip_next));
+      await tester.pump(const Duration(milliseconds: 60));
+
+      expect(bridge.currentTime, closeTo(1 / 60, 1e-9));
+      expect(find.text('0:00.0'), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+
+    testWidgets('does not step back past the start', (tester) async {
+      final bridge = FakeAnimationBridge(duration: 10);
+      await tester.pumpWidget(_wrap(bridge));
+
+      await tester.tap(find.byIcon(Icons.skip_previous));
+      await tester.pump();
+
+      expect(bridge.currentTime, 0);
+    });
+
+    testWidgets('starts a new session over when a new clip map arrives',
+        (tester) async {
+      // This is what a VRM swap looks like from here: the JS side rebuilds the
+      // animation and starts it playing, and main.dart hands over a fresh map
+      // so this widget re-reads the state instead of keeping the old one.
+      final bridge = FakeAnimationBridge(duration: 10, paused: true);
+      await tester.pumpWidget(
+        _wrap(bridge, animationInfo: {'fileName': 'walk.vrma'}),
+      );
+      expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+
+      bridge.paused = false;
+      await tester.pumpWidget(
+        _wrap(bridge, animationInfo: {'fileName': 'walk.vrma'}),
+      );
+
+      expect(find.byIcon(Icons.pause), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox.shrink());
     });
 
     testWidgets('follows the playhead while the clip runs', (tester) async {

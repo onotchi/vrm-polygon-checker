@@ -29,6 +29,19 @@ class _FullscreenButtonState extends State<FullscreenButton> {
   }
 
   @override
+  void didUpdateWidget(FullscreenButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // The app only ever passes one bridge, but this widget is public and takes
+    // it as a parameter: moving the subscription across keeps it honest, rather
+    // than leaving the old bridge subscribed and holding onto this State.
+    if (oldWidget.bridge != widget.bridge) {
+      _stopListening?.call();
+      _stopListening = widget.bridge.onChange(_syncState);
+      _syncState();
+    }
+  }
+
+  @override
   void dispose() {
     _stopListening?.call();
     super.dispose();

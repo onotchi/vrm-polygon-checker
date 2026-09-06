@@ -211,6 +211,14 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
         _errorMessage = null;
         // The new model has none of the old model's expressions applied.
         _expressions.forget();
+        // The JS side rebuilds the animation for the new model and starts it
+        // playing from the top. The seek bar is keyed on this map, so handing
+        // it a fresh one makes it start over too; otherwise it keeps the old
+        // paused state and shows "play" while the clip is actually running.
+        final animation = _animationInfo;
+        if (animation != null) {
+          _animationInfo = Map<String, dynamic>.from(animation);
+        }
         _hiddenMeshes.clear();
         _focusedMesh = null;
         _wireframeMeshes.clear();

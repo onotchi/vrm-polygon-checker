@@ -18,11 +18,11 @@ class FakeFullscreenBridge implements FullscreenBridge {
   @override
   bool isFullscreen() => fullscreen;
 
+  /// Records the request only. The real requestFullscreen()/exitFullscreen()
+  /// are asynchronous and may be refused; the change event is what actually
+  /// confirms it. Use [grantToggle] to act that out.
   @override
-  void toggle() {
-    toggleCount++;
-    fullscreen = !fullscreen;
-  }
+  void toggle() => toggleCount++;
 
   @override
   VoidCallback onChange(VoidCallback listener) {
@@ -33,6 +33,9 @@ class FakeFullscreenBridge implements FullscreenBridge {
       _listeners.remove(listener);
     };
   }
+
+  /// Acts out the browser granting the pending request.
+  void grantToggle() => changeExternally(toFullscreen: !fullscreen);
 
   /// Acts out Esc / F11: change the state behind the app's back and notify.
   void changeExternally({required bool toFullscreen}) {
@@ -58,7 +61,8 @@ void main() {
       expect(find.byIcon(Icons.fullscreen), findsNothing);
     });
 
-    testWidgets('toggles and reflects the new state', (tester) async {
+    testWidgets('asks the browser to toggle, and waits to be told it happened',
+        (tester) async {
       final bridge = FakeFullscreenBridge();
       await tester.pumpWidget(_wrap(bridge));
       expect(find.byIcon(Icons.fullscreen), findsOneWidget);
@@ -67,6 +71,44 @@ void main() {
       await tester.pump();
 
       expect(bridge.toggleCount, 1);
+      // The request is still in flight, so the label must not run ahead of it.
+      expect(find.byIcon(Icons.fullscreen), findsOneWidget);
+
+      bridge.grantToggle();
+      await tester.pump();
+
+      expect(find.byIcon(Icons.fullscreen_exit), findsOneWidget);
+    });
+
+    testWidgets('stays put when the request is refused', (tester) async {
+      final bridge = FakeFullscreenBridge();
+      await tester.pumpWidget(_wrap(bridge));
+
+      await tester.tap(find.byType(OutlinedButton));
+      await tester.pump();
+
+      // No change event ever arrives: browsers refuse the request outside a
+      // user gesture, or when an iframe policy forbids it.
+      expect(find.byIcon(Icons.fullscreen), findsOneWidget);
+      expect(find.byIcon(Icons.fullscreen_exit), findsNothing);
+    });
+
+    testWidgets('moves its subscription when the bridge is swapped',
+        (tester) async {
+      final first = FakeFullscreenBridge();
+      final second = FakeFullscreenBridge();
+
+      await tester.pumpWidget(_wrap(first));
+      expect(first.listenerCount, 1);
+
+      await tester.pumpWidget(_wrap(second));
+
+      expect(first.listenerCount, 0);
+      expect(second.listenerCount, 1);
+
+      // Events from the new bridge get through.
+      second.changeExternally(toFullscreen: true);
+      await tester.pump();
       expect(find.byIcon(Icons.fullscreen_exit), findsOneWidget);
     });
 
