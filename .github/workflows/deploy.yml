@@ -29,6 +29,14 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # Both run before the build so a failure stops the deploy, and stops it
+      # at the cheapest point.
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
       - name: Build web
         run: flutter build web --release --base-href "/vrm-polygon-checker/"
 
