@@ -12,8 +12,15 @@ import 'widgets/canvas_area.dart';
 /// Give three_app.js this long to finish importing before starting anyway.
 const _threeAppReadyTimeout = Duration(seconds: 10);
 
+/// Keeps the document's `lang` attribute in step with the loaded language.
+void _applyDocumentLanguage(AppLanguage language) {
+  (web.document.documentElement as web.HTMLElement?)?.lang = language.name;
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Registered before the first load, so no language change goes unnoticed.
+  Localization.onLanguageChanged = _applyDocumentLanguage;
   await Localization.load(AppLanguage.ja);
 
   // three_app.js imports three.js from a CDN while Flutter boots from a local
