@@ -85,10 +85,7 @@ class InfoPanel extends StatelessWidget {
               final newWidth = width - details.delta.dx;
               onWidthChanged(newWidth.clamp(250, 600));
             },
-            child: Container(
-              width: 4,
-              color: Colors.grey.shade300,
-            ),
+            child: Container(width: 4, color: Colors.grey.shade300),
           ),
         ),
         // Panel content
@@ -222,5 +219,4 @@ class InfoPanel extends StatelessWidget {
       ],
     );
   }
-
 }

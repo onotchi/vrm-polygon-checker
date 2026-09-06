@@ -33,10 +33,7 @@ class _CanvasAreaState extends State<CanvasArea> {
           );
         },
         onPointerMove: (event) {
-          js.onPointerMove(
-            event.position.dx.toJS,
-            event.position.dy.toJS,
-          );
+          js.onPointerMove(event.position.dx.toJS, event.position.dy.toJS);
         },
         onPointerUp: (event) {
           final origin = _pressPosition;

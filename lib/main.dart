@@ -140,8 +140,9 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
 
   // Expression state, owned by the controller so the "turn the old one down
   // first" rule lives in one testable place.
-  final ExpressionController _expressions =
-      ExpressionController(_expressionBridge);
+  final ExpressionController _expressions = ExpressionController(
+    _expressionBridge,
+  );
 
   // Mesh state, owned by the controller so the focus bookkeeping lives in one
   // testable place.
@@ -365,13 +366,19 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
               backgroundColor: _backgroundColor,
               antialiasEnabled: _antialiasEnabled,
               cameraFov: _cameraFov,
-              onAmbientChanged: (value) => setState(() => _ambientIntensity = value),
-              onDirectionalChanged: (value) => setState(() => _directionalIntensity = value),
+              onAmbientChanged: (value) =>
+                  setState(() => _ambientIntensity = value),
+              onDirectionalChanged: (value) =>
+                  setState(() => _directionalIntensity = value),
               onCameraFovChanged: (value) => setState(() => _cameraFov = value),
-              onGridVisibleChanged: (value) => setState(() => _gridVisible = value),
-              onShadowVisibleChanged: (value) => setState(() => _shadowVisible = value),
-              onBackgroundColorChanged: (value) => setState(() => _backgroundColor = value),
-              onAntialiasChanged: (value) => setState(() => _antialiasEnabled = value),
+              onGridVisibleChanged: (value) =>
+                  setState(() => _gridVisible = value),
+              onShadowVisibleChanged: (value) =>
+                  setState(() => _shadowVisible = value),
+              onBackgroundColorChanged: (value) =>
+                  setState(() => _backgroundColor = value),
+              onAntialiasChanged: (value) =>
+                  setState(() => _antialiasEnabled = value),
               onLanguageChanged: () => setState(() {}),
               fullscreenBridge: _fullscreenBridge,
               onHidePanels: () => _setPanelsVisible(false),

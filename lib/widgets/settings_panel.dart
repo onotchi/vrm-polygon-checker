@@ -104,10 +104,7 @@ class SettingsPanel extends StatelessWidget {
               children: [
                 Text(
                   'v$appVersion',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey,
-                  ),
+                  style: TextStyle(fontSize: 11, color: Colors.grey),
                 ),
                 const SizedBox(height: 2),
                 GestureDetector(
@@ -206,7 +203,10 @@ class SettingsPanel extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(Localization.get('grid'), style: const TextStyle(fontSize: 12)),
+            Text(
+              Localization.get('grid'),
+              style: const TextStyle(fontSize: 12),
+            ),
             Switch(
               value: gridVisible,
               onChanged: (value) {
@@ -219,7 +219,10 @@ class SettingsPanel extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(Localization.get('shadow'), style: const TextStyle(fontSize: 12)),
+            Text(
+              Localization.get('shadow'),
+              style: const TextStyle(fontSize: 12),
+            ),
             Switch(
               value: shadowVisible,
               onChanged: (value) {
@@ -230,7 +233,10 @@ class SettingsPanel extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        Text(Localization.get('background'), style: const TextStyle(fontSize: 12)),
+        Text(
+          Localization.get('background'),
+          style: const TextStyle(fontSize: 12),
+        ),
         const SizedBox(height: 4),
         Wrap(
           spacing: 6,
@@ -251,7 +257,10 @@ class SettingsPanel extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(Localization.get('antialias'), style: const TextStyle(fontSize: 12)),
+            Text(
+              Localization.get('antialias'),
+              style: const TextStyle(fontSize: 12),
+            ),
             Switch(
               value: antialiasEnabled,
               onChanged: (value) {
@@ -350,7 +359,8 @@ class SettingsPanel extends StatelessWidget {
             ),
             label: Text(
               Localization.get(
-                  turntableEnabled ? 'stopTurntable' : 'startTurntable'),
+                turntableEnabled ? 'stopTurntable' : 'startTurntable',
+              ),
               style: const TextStyle(fontSize: 12),
             ),
             style: OutlinedButton.styleFrom(
@@ -360,8 +370,10 @@ class SettingsPanel extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        Text(Localization.get('turntableSpeed'),
-            style: const TextStyle(fontSize: 12)),
+        Text(
+          Localization.get('turntableSpeed'),
+          style: const TextStyle(fontSize: 12),
+        ),
         Row(
           children: [
             Expanded(
@@ -428,7 +440,9 @@ class SettingsPanel extends StatelessWidget {
         decoration: BoxDecoration(
           color: color,
           border: Border.all(
-            color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey,
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary
+                : Colors.grey,
             width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(4),
@@ -437,7 +451,11 @@ class SettingsPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildLanguageButton(BuildContext context, String label, AppLanguage language) {
+  Widget _buildLanguageButton(
+    BuildContext context,
+    String label,
+    AppLanguage language,
+  ) {
     final isSelected = Localization.currentLanguage == language;
     return GestureDetector(
       onTap: () async {
@@ -493,7 +511,8 @@ class _ColorPickerButton extends StatelessWidget {
     input.type = 'color';
     input.value = _toHex(currentColor);
     // Sit invisibly on top of the button so the picker pops up next to it.
-    input.style.cssText = 'position:fixed;'
+    input.style.cssText =
+        'position:fixed;'
         'left:${origin.dx}px; top:${origin.dy}px;'
         'width:24px; height:24px;'
         'opacity:0; border:none; padding:0;';
@@ -510,10 +529,13 @@ class _ColorPickerButton extends StatelessWidget {
     }
 
     input.addEventListener('input', ((web.Event event) => apply()).toJS);
-    input.addEventListener('change', ((web.Event event) {
-      apply();
-      input.remove();
-    }).toJS);
+    input.addEventListener(
+      'change',
+      ((web.Event event) {
+        apply();
+        input.remove();
+      }).toJS,
+    );
     input.click();
   }
 
@@ -531,10 +553,7 @@ class _ColorPickerButton extends StatelessWidget {
             border: Border.all(color: Colors.grey, width: 1),
             borderRadius: BorderRadius.circular(4),
           ),
-          child: const Text(
-            '🎨',
-            style: TextStyle(fontSize: 16, height: 1.0),
-          ),
+          child: const Text('🎨', style: TextStyle(fontSize: 16, height: 1.0)),
         ),
       ),
     );

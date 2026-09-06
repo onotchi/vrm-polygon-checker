@@ -25,8 +25,10 @@ class VrmSummary extends StatelessWidget {
         key: ValueKey('vrm-summary-$labelKey'),
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(Localization.get(labelKey),
-              style: const TextStyle(fontWeight: FontWeight.w500)),
+          Text(
+            Localization.get(labelKey),
+            style: const TextStyle(fontWeight: FontWeight.w500),
+          ),
           Text(value),
         ],
       ),
@@ -48,8 +50,10 @@ class VrmSummary extends StatelessWidget {
     final totalTriangles = vrmInfo['triangleCount'] as int;
 
     return ExpansionTile(
-      title: Text(Localization.get('basicInfo'),
-          style: const TextStyle(fontWeight: FontWeight.bold)),
+      title: Text(
+        Localization.get('basicInfo'),
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
       tilePadding: EdgeInsets.zero,
       shape: const Border(),
       collapsedShape: const Border(),

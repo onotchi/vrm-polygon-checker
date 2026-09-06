@@ -113,11 +113,7 @@ class MeshInspector extends StatelessWidget {
             color: Colors.grey.shade200,
             borderRadius: BorderRadius.circular(4),
           ),
-          child: Icon(
-            Icons.refresh,
-            size: 14,
-            color: Colors.grey.shade700,
-          ),
+          child: Icon(Icons.refresh, size: 14, color: Colors.grey.shade700),
         ),
       ),
     );
@@ -131,8 +127,10 @@ class MeshInspector extends StatelessWidget {
     return ExpansionTile(
       title: Row(
         children: [
-          Text('${Localization.get('meshDetails')} (${meshDetails.length})',
-              style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(
+            '${Localization.get('meshDetails')} (${meshDetails.length})',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
           const Spacer(),
           _buildSortButton(context, 'triangles'),
           const SizedBox(width: 4),
@@ -155,10 +153,14 @@ class MeshInspector extends StatelessWidget {
               GestureDetector(
                 onTap: allHidden ? onShowAll : onHideAll,
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: allHidden ? Colors.grey.shade300 : Colors.grey.shade200,
+                    color: allHidden
+                        ? Colors.grey.shade300
+                        : Colors.grey.shade200,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Row(
@@ -185,11 +187,14 @@ class MeshInspector extends StatelessWidget {
               GestureDetector(
                 onTap: allWireframe ? onClearAllWireframes : onWireframeAll,
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color:
-                        allWireframe ? Colors.green.shade100 : Colors.grey.shade200,
+                    color: allWireframe
+                        ? Colors.green.shade100
+                        : Colors.grey.shade200,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Row(
@@ -198,7 +203,9 @@ class MeshInspector extends StatelessWidget {
                       Icon(
                         Icons.grid_on,
                         size: 14,
-                        color: allWireframe ? Colors.green : Colors.grey.shade700,
+                        color: allWireframe
+                            ? Colors.green
+                            : Colors.grey.shade700,
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -228,16 +235,16 @@ class MeshInspector extends StatelessWidget {
             child: InkWell(
               onTap: () => onHighlight(name),
               onLongPress: () => onFocusChanged(name),
-              hoverColor:
-                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+              hoverColor: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(4),
               child: Container(
                 decoration: isFocused
                     ? BoxDecoration(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .primaryContainer
-                            .withValues(alpha: 0.5),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primaryContainer.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(4),
                       )
                     : null,
@@ -301,10 +308,7 @@ class MeshInspector extends StatelessWidget {
           padding: const EdgeInsets.only(top: 8),
           child: Text(
             Localization.get('meshFocusHint'),
-            style: TextStyle(
-              fontSize: 10,
-              color: Colors.grey.shade500,
-            ),
+            style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
           ),
         ),
       ],

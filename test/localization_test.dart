@@ -9,8 +9,7 @@ void main() {
   tearDown(() => Localization.onLanguageChanged = null);
 
   group('Localization.onLanguageChanged', () {
-    test('fires on every load, including repeats of the same language',
-        () async {
+    test('fires on every load, including repeats of the same language', () async {
       final seen = <AppLanguage>[];
       Localization.onLanguageChanged = seen.add;
 

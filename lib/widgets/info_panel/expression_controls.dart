@@ -34,8 +34,10 @@ class ExpressionControls extends StatelessWidget {
     }
 
     return ExpansionTile(
-      title: Text('${Localization.get('expressions')} (${clips.length})',
-          style: const TextStyle(fontWeight: FontWeight.bold)),
+      title: Text(
+        '${Localization.get('expressions')} (${clips.length})',
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
       tilePadding: EdgeInsets.zero,
       shape: const Border(),
       collapsedShape: const Border(),
@@ -49,8 +51,10 @@ class ExpressionControls extends StatelessWidget {
               OutlinedButton(
                 onPressed: onReset,
                 style: OutlinedButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   minimumSize: Size.zero,
                 ),
                 child: Text(
@@ -64,11 +68,14 @@ class ExpressionControls extends StatelessWidget {
                 return ElevatedButton(
                   onPressed: () => onSelected(isActive ? null : name),
                   style: ElevatedButton.styleFrom(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     minimumSize: Size.zero,
-                    backgroundColor:
-                        isActive ? Theme.of(context).colorScheme.primary : null,
+                    backgroundColor: isActive
+                        ? Theme.of(context).colorScheme.primary
+                        : null,
                     foregroundColor: isActive
                         ? Theme.of(context).colorScheme.onPrimary
                         : null,

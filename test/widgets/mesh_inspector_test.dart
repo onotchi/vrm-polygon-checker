@@ -68,10 +68,12 @@ Future<void> _expand(WidgetTester tester) async {
 /// Mesh names in the order they are laid out on screen.
 List<String> _displayedOrder(WidgetTester tester) {
   final names = ['Body', 'Hair', 'Face'];
-  names.sort((a, b) => tester
-      .getTopLeft(find.text(a))
-      .dy
-      .compareTo(tester.getTopLeft(find.text(b)).dy));
+  names.sort(
+    (a, b) => tester
+        .getTopLeft(find.text(a))
+        .dy
+        .compareTo(tester.getTopLeft(find.text(b)).dy),
+  );
   return names;
 }
 
@@ -92,7 +94,9 @@ void main() {
     });
 
     testWidgets('sorts by triangle count descending', (tester) async {
-      await tester.pumpWidget(_wrap(sortKey: 'triangles', sortAscending: false));
+      await tester.pumpWidget(
+        _wrap(sortKey: 'triangles', sortAscending: false),
+      );
       await _expand(tester);
 
       expect(_displayedOrder(tester), ['Body', 'Face', 'Hair']);
@@ -123,28 +127,30 @@ void main() {
     });
 
     testWidgets('flips to show-all once every mesh is hidden', (tester) async {
-      await tester.pumpWidget(_wrap(
-        hiddenMeshes: const {'Body', 'Hair', 'Face'},
-      ));
+      await tester.pumpWidget(
+        _wrap(hiddenMeshes: const {'Body', 'Hair', 'Face'}),
+      );
       await _expand(tester);
 
       expect(find.text('showAll'), findsOneWidget);
       expect(find.text('hideAll'), findsNothing);
     });
 
-    testWidgets('still offers hide-all when only some are hidden',
-        (tester) async {
+    testWidgets('still offers hide-all when only some are hidden', (
+      tester,
+    ) async {
       await tester.pumpWidget(_wrap(hiddenMeshes: const {'Body'}));
       await _expand(tester);
 
       expect(find.text('hideAll'), findsOneWidget);
     });
 
-    testWidgets('flips the wireframe action once every mesh is wireframed',
-        (tester) async {
-      await tester.pumpWidget(_wrap(
-        wireframeMeshes: const {'Body', 'Hair', 'Face'},
-      ));
+    testWidgets('flips the wireframe action once every mesh is wireframed', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(wireframeMeshes: const {'Body', 'Hair', 'Face'}),
+      );
       await _expand(tester);
 
       expect(find.text('wireframeOff'), findsOneWidget);
@@ -155,10 +161,9 @@ void main() {
       var shown = 0;
       var hidden = 0;
 
-      await tester.pumpWidget(_wrap(
-        onShowAll: () => shown++,
-        onHideAll: () => hidden++,
-      ));
+      await tester.pumpWidget(
+        _wrap(onShowAll: () => shown++, onHideAll: () => hidden++),
+      );
       await _expand(tester);
 
       await tester.tap(find.text('hideAll'));
@@ -170,11 +175,13 @@ void main() {
       var shown = 0;
       var hidden = 0;
 
-      await tester.pumpWidget(_wrap(
-        hiddenMeshes: const {'Body', 'Hair', 'Face'},
-        onShowAll: () => shown++,
-        onHideAll: () => hidden++,
-      ));
+      await tester.pumpWidget(
+        _wrap(
+          hiddenMeshes: const {'Body', 'Hair', 'Face'},
+          onShowAll: () => shown++,
+          onHideAll: () => hidden++,
+        ),
+      );
       await _expand(tester);
 
       await tester.tap(find.text('showAll'));
@@ -182,15 +189,18 @@ void main() {
       expect(hidden, 0);
     });
 
-    testWidgets('reports wireframe-all while some meshes are plain',
-        (tester) async {
+    testWidgets('reports wireframe-all while some meshes are plain', (
+      tester,
+    ) async {
       var wireframed = 0;
       var cleared = 0;
 
-      await tester.pumpWidget(_wrap(
-        onWireframeAll: () => wireframed++,
-        onClearAllWireframes: () => cleared++,
-      ));
+      await tester.pumpWidget(
+        _wrap(
+          onWireframeAll: () => wireframed++,
+          onClearAllWireframes: () => cleared++,
+        ),
+      );
       await _expand(tester);
 
       await tester.tap(find.text('wireframeOn'));
@@ -198,16 +208,19 @@ void main() {
       expect(cleared, 0);
     });
 
-    testWidgets('reports clear-wireframes once every mesh is wireframed',
-        (tester) async {
+    testWidgets('reports clear-wireframes once every mesh is wireframed', (
+      tester,
+    ) async {
       var wireframed = 0;
       var cleared = 0;
 
-      await tester.pumpWidget(_wrap(
-        wireframeMeshes: const {'Body', 'Hair', 'Face'},
-        onWireframeAll: () => wireframed++,
-        onClearAllWireframes: () => cleared++,
-      ));
+      await tester.pumpWidget(
+        _wrap(
+          wireframeMeshes: const {'Body', 'Hair', 'Face'},
+          onWireframeAll: () => wireframed++,
+          onClearAllWireframes: () => cleared++,
+        ),
+      );
       await _expand(tester);
 
       await tester.tap(find.text('wireframeOff'));
@@ -237,8 +250,9 @@ void main() {
       expect(focused, 'Face');
     });
 
-    testWidgets('shows the triangle and material counts per mesh',
-        (tester) async {
+    testWidgets('shows the triangle and material counts per mesh', (
+      tester,
+    ) async {
       await tester.pumpWidget(_wrap());
       await _expand(tester);
 
@@ -246,18 +260,22 @@ void main() {
       expect(find.text('100 tris, 1 mat'), findsOneWidget);
     });
 
-    testWidgets('reports the mesh whose visibility icon was tapped',
-        (tester) async {
+    testWidgets('reports the mesh whose visibility icon was tapped', (
+      tester,
+    ) async {
       String? toggled;
 
-      await tester
-          .pumpWidget(_wrap(onVisibilityChanged: (name) => toggled = name));
+      await tester.pumpWidget(
+        _wrap(onVisibilityChanged: (name) => toggled = name),
+      );
       await _expand(tester);
 
-      await tester.tap(find.descendant(
-        of: _rowOf('Hair'),
-        matching: find.byIcon(Icons.visibility),
-      ));
+      await tester.tap(
+        find.descendant(
+          of: _rowOf('Hair'),
+          matching: find.byIcon(Icons.visibility),
+        ),
+      );
       expect(toggled, 'Hair');
     });
 
@@ -281,18 +299,22 @@ void main() {
       );
     });
 
-    testWidgets('reports the mesh whose wireframe icon was tapped',
-        (tester) async {
+    testWidgets('reports the mesh whose wireframe icon was tapped', (
+      tester,
+    ) async {
       String? toggled;
 
-      await tester
-          .pumpWidget(_wrap(onWireframeChanged: (name) => toggled = name));
+      await tester.pumpWidget(
+        _wrap(onWireframeChanged: (name) => toggled = name),
+      );
       await _expand(tester);
 
-      await tester.tap(find.descendant(
-        of: _rowOf('Face'),
-        matching: find.byIcon(Icons.grid_on),
-      ));
+      await tester.tap(
+        find.descendant(
+          of: _rowOf('Face'),
+          matching: find.byIcon(Icons.grid_on),
+        ),
+      );
       expect(toggled, 'Face');
     });
   });
@@ -313,10 +335,9 @@ void main() {
       var resets = 0;
       final requested = <String>[];
 
-      await tester.pumpWidget(_wrap(
-        onSortChanged: requested.add,
-        onSortReset: () => resets++,
-      ));
+      await tester.pumpWidget(
+        _wrap(onSortChanged: requested.add, onSortReset: () => resets++),
+      );
 
       await tester.tap(find.byTooltip('sortReset'));
 

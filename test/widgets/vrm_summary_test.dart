@@ -57,8 +57,9 @@ void main() {
       expect(find.text('VRM 1.0'), findsOneWidget);
     });
 
-    testWidgets('omits the file name row when there is no file name',
-        (tester) async {
+    testWidgets('omits the file name row when there is no file name', (
+      tester,
+    ) async {
       final info = Map<String, dynamic>.from(_vrmInfo)..['fileName'] = null;
       await tester.pumpWidget(_wrap(info));
 
@@ -69,8 +70,9 @@ void main() {
       expect(find.text('Test Avatar'), findsOneWidget);
     });
 
-    testWidgets('falls back to a placeholder for an unknown version',
-        (tester) async {
+    testWidgets('falls back to a placeholder for an unknown version', (
+      tester,
+    ) async {
       final info = Map<String, dynamic>.from(_vrmInfo)..remove('vrmVersion');
       await tester.pumpWidget(_wrap(info));
 
@@ -90,15 +92,17 @@ void main() {
       expect(_valueFor(tester, 'textures'), '5');
     });
 
-    testWidgets('counts every mesh as visible when none are hidden',
-        (tester) async {
+    testWidgets('counts every mesh as visible when none are hidden', (
+      tester,
+    ) async {
       await tester.pumpWidget(_wrap(_vrmInfo));
 
       expect(_valueFor(tester, 'trianglesVisible'), '600');
     });
 
-    testWidgets('leaves out hidden meshes from the visible count',
-        (tester) async {
+    testWidgets('leaves out hidden meshes from the visible count', (
+      tester,
+    ) async {
       await tester.pumpWidget(_wrap(_vrmInfo, hiddenMeshes: const {'Body'}));
 
       // 600 total - 300 for Body
@@ -107,12 +111,12 @@ void main() {
       expect(_valueFor(tester, 'triangles'), '600');
     });
 
-    testWidgets('reports zero visible triangles when everything is hidden',
-        (tester) async {
-      await tester.pumpWidget(_wrap(
-        _vrmInfo,
-        hiddenMeshes: const {'Body', 'Hair', 'Face'},
-      ));
+    testWidgets('reports zero visible triangles when everything is hidden', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(_vrmInfo, hiddenMeshes: const {'Body', 'Hair', 'Face'}),
+      );
 
       expect(_valueFor(tester, 'trianglesVisible'), '0');
     });

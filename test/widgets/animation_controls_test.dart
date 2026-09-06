@@ -118,16 +118,18 @@ void main() {
       expect(slider.max, 12);
     });
 
-    testWidgets('takes the clip length from the bridge on the first build',
-        (tester) async {
+    testWidgets('takes the clip length from the bridge on the first build', (
+      tester,
+    ) async {
       await tester.pumpWidget(_wrap(FakeAnimationBridge(duration: 90)));
 
       // 90 seconds formatted as minutes:seconds
       expect(find.text('1:30.0'), findsOneWidget);
     });
 
-    testWidgets('pauses a playing clip and resumes a paused one',
-        (tester) async {
+    testWidgets('pauses a playing clip and resumes a paused one', (
+      tester,
+    ) async {
       final bridge = FakeAnimationBridge(paused: false);
       await tester.pumpWidget(_wrap(bridge));
 
@@ -140,8 +142,9 @@ void main() {
       expect(bridge.calls, ['pause', 'resume']);
     });
 
-    testWidgets('starts on the paused icon when the clip is already paused',
-        (tester) async {
+    testWidgets('starts on the paused icon when the clip is already paused', (
+      tester,
+    ) async {
       await tester.pumpWidget(_wrap(FakeAnimationBridge(paused: true)));
 
       expect(find.byIcon(Icons.play_arrow), findsOneWidget);
@@ -158,8 +161,9 @@ void main() {
       expect(bridge.calls, ['stepForward', 'stepBackward']);
     });
 
-    testWidgets('pauses when stepping, so the clip does not run away',
-        (tester) async {
+    testWidgets('pauses when stepping, so the clip does not run away', (
+      tester,
+    ) async {
       final bridge = FakeAnimationBridge(paused: false);
       await tester.pumpWidget(_wrap(bridge));
       expect(find.byIcon(Icons.pause), findsOneWidget);
@@ -205,8 +209,9 @@ void main() {
       expect(bridge.currentTime, 0);
     });
 
-    testWidgets('starts a new session over when a new clip map arrives',
-        (tester) async {
+    testWidgets('starts a new session over when a new clip map arrives', (
+      tester,
+    ) async {
       // This is what a VRM swap looks like from here: the JS side rebuilds the
       // animation and starts it playing, and main.dart hands over a fresh map
       // so this widget re-reads the state instead of keeping the old one.

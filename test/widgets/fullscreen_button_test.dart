@@ -46,8 +46,9 @@ class FakeFullscreenBridge implements FullscreenBridge {
   }
 }
 
-Widget _wrap(FakeFullscreenBridge bridge) =>
-    MaterialApp(home: Scaffold(body: FullscreenButton(bridge: bridge)));
+Widget _wrap(FakeFullscreenBridge bridge) => MaterialApp(
+  home: Scaffold(body: FullscreenButton(bridge: bridge)),
+);
 
 void main() {
   // Localization.load() reads the language files through rootBundle.
@@ -61,8 +62,9 @@ void main() {
       expect(find.byIcon(Icons.fullscreen), findsNothing);
     });
 
-    testWidgets('asks the browser to toggle, and waits to be told it happened',
-        (tester) async {
+    testWidgets('asks the browser to toggle, and waits to be told it happened', (
+      tester,
+    ) async {
       final bridge = FakeFullscreenBridge();
       await tester.pumpWidget(_wrap(bridge));
       expect(find.byIcon(Icons.fullscreen), findsOneWidget);
@@ -93,8 +95,9 @@ void main() {
       expect(find.byIcon(Icons.fullscreen_exit), findsNothing);
     });
 
-    testWidgets('moves its subscription when the bridge is swapped',
-        (tester) async {
+    testWidgets('moves its subscription when the bridge is swapped', (
+      tester,
+    ) async {
       final first = FakeFullscreenBridge();
       final second = FakeFullscreenBridge();
 
