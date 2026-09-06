@@ -327,6 +327,10 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
     });
   }
 
+  void _handleMeshHighlight(String name) {
+    js.highlightMesh(name.toJS);
+  }
+
   void _handleMeshWireframeChanged(String name) {
     setState(() {
       if (_wireframeMeshes.contains(name)) {
@@ -443,6 +447,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
                 onMeshVisibilityChanged: _handleMeshVisibilityChanged,
                 onMeshFocusChanged: _handleMeshFocusChanged,
                 onMeshWireframeChanged: _handleMeshWireframeChanged,
+                onMeshHighlight: _handleMeshHighlight,
                 onShowAllMeshes: _showAllMeshes,
                 onHideAllMeshes: _hideAllMeshes,
                 onWireframeAllMeshes: _wireframeAllMeshes,
