@@ -61,6 +61,14 @@ class FakeAnimationBridge implements AnimationBridge {
     currentTime = (currentTime - _frame).clamp(0, duration);
     paused = true;
   }
+
+  @override
+  void stop() {
+    calls.add('stop');
+    duration = 0;
+    currentTime = 0;
+    paused = false;
+  }
 }
 
 Widget _wrap(

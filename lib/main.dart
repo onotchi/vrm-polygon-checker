@@ -277,7 +277,7 @@ class _VRMViewerPageState extends State<VRMViewerPage> {
   }
 
   void _stopAnimation() {
-    js.stopAnimation();
+    _animationBridge.stop();
     setState(() {
       _animationInfo = null;
     });

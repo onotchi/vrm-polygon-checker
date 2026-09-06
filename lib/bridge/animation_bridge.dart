@@ -27,4 +27,8 @@ abstract interface class AnimationBridge {
 
   /// Rewinds one frame and pauses.
   void stepBackward();
+
+  /// Stops playback and lets go of the clip, so it is not reapplied when the
+  /// model is swapped.
+  void stop();
 }

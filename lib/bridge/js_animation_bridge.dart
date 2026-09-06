@@ -38,6 +38,9 @@ class JsAnimationBridge implements AnimationBridge {
   @override
   void stepBackward() => js.stepAnimationBackward();
 
+  @override
+  void stop() => js.stopAnimation();
+
   static Map<String, dynamic> _decode(JSString raw) =>
       jsonDecode(raw.toDart) as Map<String, dynamic>;
 
