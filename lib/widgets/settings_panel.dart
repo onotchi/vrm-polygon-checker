@@ -257,7 +257,10 @@ class SettingsPanel extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 4),
-        const _FullscreenButton(),
+        // Not const: a const widget is the same instance on every rebuild, so
+        // Flutter skips rebuilding it and its label would keep the wording from
+        // whichever language was loaded first.
+        _FullscreenButton(),
         const SizedBox(height: 4),
         SizedBox(
           width: double.infinity,
