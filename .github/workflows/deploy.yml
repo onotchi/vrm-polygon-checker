@@ -29,8 +29,11 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # Both run before the build so a failure stops the deploy, and stops it
+      # These run before the build so a failure stops the deploy, and stops it
       # at the cheapest point.
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed lib test
+
       - name: Analyze
         run: flutter analyze
 
